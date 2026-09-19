@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMeeting } from '../context/MeetingContext';
+import { MeetingIntelligence } from './MeetingIntelligence';
 import { Sparkles, CheckCircle, FileText, Play, Layers } from 'lucide-react';
 
 export const SummaryViewer: React.FC = () => {
@@ -55,6 +56,9 @@ export const SummaryViewer: React.FC = () => {
           {currentTemplate.description}
         </span>
       </div>
+
+      {/* Interactive Meeting Intelligence Section */}
+      <MeetingIntelligence meeting={activeMeeting} />
 
       {/* Executive Overview Box */}
       <div className="summary-overview-box">

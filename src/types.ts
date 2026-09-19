@@ -62,6 +62,20 @@ export interface ShareRecipient {
   revoked: boolean;
 }
 
+export interface DecisionInsight {
+  id?: string;
+  text: string;
+  timestamp?: number;
+}
+
+export interface OpenQuestion {
+  id: string;
+  question: string;
+  timestamp?: number;
+  speakerName?: string;
+  context?: string;
+}
+
 export interface Meeting {
   id: string;
   title: string;
@@ -71,9 +85,11 @@ export interface Meeting {
   participants: Participant[];
   overview: string;
   keyDecisions: string[];
+  keyDecisionDetails?: DecisionInsight[];
   topics: TopicDiscussion[];
   actionItems: ActionItem[];
   highlights: Highlight[];
+  openQuestions?: OpenQuestion[];
   transcript: TranscriptUtterance[];
   shares: ShareRecipient[];
   activeTemplate: string;

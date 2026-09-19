@@ -51,7 +51,18 @@ export const MeetingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return parsed.map((m: Meeting) => {
+          const seed = seedMeetings.find((s) => s.id === m.id);
+          if (seed) {
+            return {
+              ...m,
+              keyDecisionDetails: m.keyDecisionDetails || seed.keyDecisionDetails,
+              openQuestions: m.openQuestions || seed.openQuestions
+            };
+          }
+          return m;
+        });
       } catch (e) {
         console.error('Failed to parse cached meetings', e);
       }

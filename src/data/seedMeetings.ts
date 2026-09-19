@@ -73,6 +73,37 @@ export const seedMeetings: Meeting[] = [
       'Enforce minimum 95% semantic recall on golden test set before deploying v2 models to production.',
       'Standardize on JSONL formatted multi-turn eval harnesses.'
     ],
+    keyDecisionDetails: [
+      {
+        id: 'dec-1-1',
+        text: 'Transition evaluation cache to local SQLite instance with WAL mode to unlock 2.1s test turnarounds',
+        timestamp: 165
+      },
+      {
+        id: 'dec-1-2',
+        text: 'Enforce minimum 95% semantic recall on golden test set before deploying v2 models to production',
+        timestamp: 575
+      },
+      {
+        id: 'dec-1-3',
+        text: 'Standardize on JSONL formatted multi-turn eval harnesses',
+        timestamp: 20
+      }
+    ],
+    openQuestions: [
+      {
+        id: 'oq-1-1',
+        question: 'How will the evaluation pipeline handle ambiguous simultaneous multi-speaker interruptions?',
+        timestamp: 57,
+        speakerName: 'Elena Rostova'
+      },
+      {
+        id: 'oq-1-2',
+        question: 'What is the acceptable cost-per-evaluation threshold for automated PR gating in Datadog?',
+        timestamp: 198,
+        speakerName: 'David Kim'
+      }
+    ],
     topics: [
       {
         title: 'Benchmark Run Latency Bottleneck',
@@ -351,6 +382,42 @@ export const seedMeetings: Meeting[] = [
       'Require explicit security confirmation when sharing with external/non-attendee emails.',
       'Implement 5-second undo toast with instant revocation control.'
     ],
+    keyDecisionDetails: [
+      {
+        id: 'dec-2-1',
+        text: 'Replace generic Google Meet titles with contextual smart titles generated from initial conversation',
+        timestamp: 300
+      },
+      {
+        id: 'dec-2-2',
+        text: 'Surface actual meeting attendees at top of share modal for 1-click sharing',
+        timestamp: 540
+      },
+      {
+        id: 'dec-2-3',
+        text: 'Require explicit security confirmation when sharing with external/non-attendee emails',
+        timestamp: 645
+      },
+      {
+        id: 'dec-2-4',
+        text: 'Implement 5-second undo toast with instant access revocation',
+        timestamp: 715
+      }
+    ],
+    openQuestions: [
+      {
+        id: 'oq-2-1',
+        question: 'What prompt token budget and audio chunk size should be allocated for the 3-minute title extractor?',
+        timestamp: 300,
+        speakerName: 'David Kim'
+      },
+      {
+        id: 'oq-2-2',
+        question: 'Should revoked share links return a 404 or an explicit permission-denied screen?',
+        timestamp: 645,
+        speakerName: 'Maya Patel'
+      }
+    ],
     topics: [
       {
         title: 'Solving Generic Meeting Titles',
@@ -587,6 +654,31 @@ export const seedMeetings: Meeting[] = [
       'Acme Corp will commence a 50-seat pilot of SmartEval across their ML and Data engineering teams on October 1st.',
       'Fathom will provide zero-data-retention guarantees for all transcript audio and evaluation logs.',
       'Rachel will send revised enterprise agreement with customized 99.9% uptime SLA.'
+    ],
+    keyDecisionDetails: [
+      {
+        id: 'dec-3-1',
+        text: 'Acme Corp will commence a 50-seat pilot of SmartEval starting October 1st',
+        timestamp: 1620
+      },
+      {
+        id: 'dec-3-2',
+        text: 'Fathom will provide zero-data-retention guarantees on all transcript audio and evaluation logs',
+        timestamp: 820
+      },
+      {
+        id: 'dec-3-3',
+        text: 'Rachel will send revised enterprise agreement with customized 99.9% uptime SLA',
+        timestamp: 1760
+      }
+    ],
+    openQuestions: [
+      {
+        id: 'oq-3-1',
+        question: 'Will Acme Corp IT security review require dedicated on-premises evaluation gateways or VPC peering?',
+        timestamp: 930,
+        speakerName: 'Thomas Wright'
+      }
     ],
     topics: [
       {
