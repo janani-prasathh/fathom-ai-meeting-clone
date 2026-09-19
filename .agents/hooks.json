@@ -1,0 +1,16 @@
+{
+  "agent-capture": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 /Users/jananip/fanthom_clone/scripts/capture.py --hook"
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "python3 /Users/jananip/fanthom_clone/scripts/capture.py --hook"
+      }
+    ]
+  }
+}
