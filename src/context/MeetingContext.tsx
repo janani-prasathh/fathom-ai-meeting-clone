@@ -52,7 +52,7 @@ export const MeetingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return parsed.map((m: Meeting) => {
+        const mapped = parsed.map((m: Meeting) => {
           const seed = seedMeetings.find((s) => s.id === m.id);
           if (seed) {
             return {
@@ -63,6 +63,9 @@ export const MeetingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           return m;
         });
+        // Append any seed meetings added to codebase not yet in cache
+        const missingSeeds = seedMeetings.filter((s) => !mapped.some((m: Meeting) => m.id === s.id));
+        return [...mapped, ...missingSeeds];
       } catch (e) {
         console.error('Failed to parse cached meetings', e);
       }

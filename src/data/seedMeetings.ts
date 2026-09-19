@@ -56,6 +56,14 @@ export const participants: Record<string, Participant> = {
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     role: 'Enterprise AE',
     color: '#14b8a6'
+  },
+  alex: {
+    id: 'p-alex',
+    name: 'Alex Mercer',
+    email: 'alex.m@fathom.internal',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    role: 'Staff Infrastructure Architect',
+    color: '#3b82f6'
   }
 };
 
@@ -908,5 +916,253 @@ export const seedMeetings: Meeting[] = [
       'What is the next step for legal and security sign-off?'
     ],
     tags: ['Acme Corp', 'SmartEval', 'Enterprise Sales', 'Security']
+  },
+  {
+    id: 'q3-allhands-8person',
+    title: 'All-Hands Architecture & Product Scaling: 8-Person Quarterly Sync',
+    originalCalendarTitle: 'Q3 Cross-Functional All-Hands (8 Attendees)',
+    date: '2026-09-16T15:00:00Z',
+    durationSeconds: 3540, // 59 mins (~1 hour)
+    participants: [
+      participants.david,
+      participants.sarah,
+      participants.elena,
+      participants.marcus,
+      participants.maya,
+      participants.alex,
+      participants.rachel,
+      participants.thomas
+    ],
+    overview: 'Comprehensive 59-minute quarterly planning review uniting product, ML engineering, QA, design, infrastructure, sales, and customer advisory. The team aligned on scaling the inference cluster for 10x meeting volume, approving the 2.1s SmartEval SLA, and expanding enterprise SOC2 compliance.',
+    keyDecisions: [
+      'Approve Kubernetes auto-scaling cluster across US-East regions to handle 10x concurrent meeting transcription volume.',
+      'Standardize all platform services on zero-data-retention inference policies for enterprise tier.',
+      'Authorize Acme Corp 50-seat pilot rollout as the benchmark for Q4 enterprise deployments.'
+    ],
+    keyDecisionDetails: [
+      {
+        id: 'dec-8p-1',
+        text: 'Approve Kubernetes auto-scaling cluster across US-East regions to handle 10x concurrent meeting transcription volume',
+        timestamp: 320
+      },
+      {
+        id: 'dec-8p-2',
+        text: 'Standardize all platform services on zero-data-retention inference policies for enterprise tier',
+        timestamp: 1240
+      },
+      {
+        id: 'dec-8p-3',
+        text: 'Authorize Acme Corp 50-seat pilot rollout as the benchmark for Q4 enterprise deployments',
+        timestamp: 2480
+      }
+    ],
+    openQuestions: [
+      {
+        id: 'oq-8p-1',
+        question: 'Will the multi-region Kubernetes cluster increase per-meeting compute cost beyond our $0.04 margin target?',
+        timestamp: 450,
+        speakerName: 'Alex Mercer'
+      },
+      {
+        id: 'oq-8p-2',
+        question: 'How should we partition long 1-hour transcripts in the UI to maintain 60 FPS rendering on low-end laptops?',
+        timestamp: 1400,
+        speakerName: 'Maya Patel'
+      }
+    ],
+    topics: [
+      {
+        title: 'Infrastructure Capacity & 10x Cluster Scaling',
+        timestamp: 120,
+        bullets: [
+          'Alex reviewed current node saturation during morning peak hours.',
+          'Approved migration to auto-scaling EKS cluster with 250ms cold-start threshold.'
+        ]
+      },
+      {
+        title: 'Model Grounding & QA Soak Testing',
+        timestamp: 1100,
+        bullets: [
+          'Elena presented results from 500 regression test cycles.',
+          'Sarah confirmed SQLite caching prevents latency degradation even under 8-speaker load.'
+        ]
+      },
+      {
+        title: 'Enterprise Go-To-Market & Partner Pipeline',
+        timestamp: 2200,
+        bullets: [
+          'Rachel and Thomas summarized feedback from Acme Corp security review.',
+          'David committed engineering support for enterprise onboarding starting October.'
+        ]
+      }
+    ],
+    actionItems: [
+      {
+        id: 'act-8p-1',
+        title: 'Deploy auto-scaling Terraform modules to staging infrastructure and verify load resilience',
+        assignee: participants.alex,
+        completed: false,
+        timestamp: 410,
+        sourceQuote: "I will deploy the auto-scaling Terraform modules to staging by Thursday afternoon."
+      },
+      {
+        id: 'act-8p-2',
+        title: 'Commit multi-region inference load-balancer integration with SmartEval latency gating',
+        assignee: participants.sarah,
+        completed: true,
+        timestamp: 1320,
+        sourceQuote: "I'll commit the multi-region inference load-balancer integration with SmartEval."
+      },
+      {
+        id: 'act-8p-3',
+        title: 'Execute 1,000-call soak test across all 8 audio profiles to verify zero memory leaks',
+        assignee: participants.elena,
+        completed: false,
+        timestamp: 1850,
+        sourceQuote: "I will run the 1,000-call soak test across all 8 audio profiles to ensure zero memory leaks."
+      },
+      {
+        id: 'act-8p-4',
+        title: 'Deliver interactive design specifications for enterprise role-based access management',
+        assignee: participants.marcus,
+        completed: false,
+        timestamp: 2600,
+        sourceQuote: "I will deliver design specs for enterprise role-based access management."
+      }
+    ],
+    highlights: [
+      {
+        id: 'hl-8p-1',
+        title: '8-Person Consensus on 10x Scale Architecture',
+        startTime: 300,
+        endTime: 440,
+        speakerName: 'Alex Mercer',
+        summary: 'Alex Mercer and Sarah Chen align on the distributed Kubernetes model for handling concurrent calls.',
+        tag: 'Technical Architecture'
+      },
+      {
+        id: 'hl-8p-2',
+        title: 'Enterprise Pilot Approval',
+        startTime: 2450,
+        endTime: 2560,
+        speakerName: 'David Kim',
+        summary: 'Unanimous team agreement to proceed with Acme Corp 50-seat pilot rollout.',
+        tag: 'Key Decision'
+      }
+    ],
+    transcript: [
+      {
+        id: 'ut-8p-1',
+        speakerId: 'p-david',
+        speakerName: 'David Kim',
+        speakerAvatar: participants.david.avatar,
+        startTime: 0,
+        endTime: 25,
+        text: "Welcome everyone to our quarterly all-hands planning session. We have product, ML, design, QA, infra, sales, and Thomas from our customer advisory board here today."
+      },
+      {
+        id: 'ut-8p-2',
+        speakerId: 'p-alex',
+        speakerName: 'Alex Mercer',
+        speakerAvatar: participants.alex.avatar,
+        startTime: 300,
+        endTime: 380,
+        text: "From an infrastructure standpoint, our peak load is up 400% this quarter. We need to auto-scale our Kubernetes nodes dynamically across regions so meeting capture never lags."
+      },
+      {
+        id: 'ut-8p-3',
+        speakerId: 'p-alex',
+        speakerName: 'Alex Mercer',
+        speakerAvatar: participants.alex.avatar,
+        startTime: 405,
+        endTime: 445,
+        text: "I will deploy the auto-scaling Terraform modules to staging by Thursday afternoon. That will give us automatic horizontal scaling under surge load."
+      },
+      {
+        id: 'ut-8p-4',
+        speakerId: 'p-sarah',
+        speakerName: 'Sarah Chen',
+        speakerAvatar: participants.sarah.avatar,
+        startTime: 1240,
+        endTime: 1315,
+        text: "On the model side, our local SQLite caching ensures that even in an 8-person meeting with rapid dialogue, intelligence synthesis remains sub-three seconds."
+      },
+      {
+        id: 'ut-8p-5',
+        speakerId: 'p-sarah',
+        speakerName: 'Sarah Chen',
+        speakerAvatar: participants.sarah.avatar,
+        startTime: 1315,
+        endTime: 1350,
+        text: "I'll commit the multi-region inference load-balancer integration with SmartEval to ensure strict 2-second SLA guarantees across all zones."
+      },
+      {
+        id: 'ut-8p-6',
+        speakerId: 'p-elena',
+        speakerName: 'Elena Rostova',
+        speakerAvatar: participants.elena.avatar,
+        startTime: 1840,
+        endTime: 1890,
+        text: "I will run the 1,000-call soak test across all 8 audio profiles to ensure zero memory leaks during prolonged multi-hour meetings."
+      },
+      {
+        id: 'ut-8p-7',
+        speakerId: 'p-thomas',
+        speakerName: 'Thomas Wright',
+        speakerAvatar: participants.thomas.avatar,
+        startTime: 2470,
+        endTime: 2540,
+        text: "Hearing this technical depth gives Acme complete confidence. Our 50 engineers are excited to begin testing on October first."
+      },
+      {
+        id: 'ut-8p-8',
+        speakerId: 'p-marcus',
+        speakerName: 'Marcus Vance',
+        speakerAvatar: participants.marcus.avatar,
+        startTime: 2590,
+        endTime: 2640,
+        text: "I will deliver design specs for enterprise role-based access management so admins can manage permissions effortlessly."
+      }
+    ],
+    shares: [],
+    activeTemplate: 'executive',
+    templates: {
+      executive: {
+        key: 'executive',
+        name: 'Executive Summary',
+        description: 'High-level synthesis focused on key business decisions, metrics, and outcomes.',
+        overview: 'Comprehensive 59-minute quarterly planning review uniting product, ML engineering, QA, design, infrastructure, sales, and customer advisory.',
+        sections: [
+          {
+            heading: 'Strategic Milestones',
+            bullets: [
+              'Approved Kubernetes multi-region auto-scaling cluster to support 10x call volume.',
+              'Signed off on Acme Corp 50-seat pilot beginning October 1st.'
+            ]
+          }
+        ]
+      },
+      engineering: {
+        key: 'engineering',
+        name: 'Engineering Spec & Technical Notes',
+        description: 'Detailed technical notes with architecture changes, schemas, and performance benchmarks.',
+        overview: 'Infrastructure and model deployment specs for multi-region EKS clusters.',
+        sections: [
+          {
+            heading: 'Infrastructure & Scaling',
+            bullets: [
+              'Terraform horizontal pod auto-scaler scaling on inference queue depth.',
+              'Multi-speaker audio soak testing across 1,000 continuous test calls.'
+            ]
+          }
+        ]
+      }
+    },
+    suggestedQuestions: [
+      'What architecture was approved to handle 10x meeting volume?',
+      'Who owns the Terraform auto-scaling deployment?',
+      'What were the QA findings on prolonged 8-speaker calls?'
+    ],
+    tags: ['All-Hands', 'Scaling', 'Architecture', 'Quarterly Sync']
   }
 ];
