@@ -1,6 +1,24 @@
+# Dependencies
+node_modules/
+
+# Production Build Output
+dist/
+dist-ssr/
+
+# Environment Variables & Local Secrets
+.env
+.env.local
+.env.*.local
+
+# Operating System & Editor Artifacts
+.DS_Store
+Thumbs.db
+*.local
+.vscode/
+.idea/
+
+# Python Cache (capture script support)
 __pycache__/
 *.pyc
-.DS_Store
-node_modules/
-dist/
 
+# Note: .agent-logs/ is explicitly tracked for assignment capture verification
