@@ -66,7 +66,7 @@ export const FollowUpEmailModal: React.FC<FollowUpEmailModalProps> = ({
 
     // Key Decisions / Takeaways
     if (m.keyDecisions && m.keyDecisions.length > 0) {
-      lines.push('### Key Takeaways & Decisions');
+      lines.push('Key Takeaways & Decisions');
       m.keyDecisions.forEach((d) => {
         lines.push(`• ${d}`);
       });
@@ -75,7 +75,7 @@ export const FollowUpEmailModal: React.FC<FollowUpEmailModalProps> = ({
 
     // Action Items
     if (m.actionItems && m.actionItems.length > 0) {
-      lines.push('### Action Items');
+      lines.push('Action Items');
       m.actionItems.forEach((act) => {
         const timeRef = act.timestamp ? ` (discussed at ${formatTime(act.timestamp)})` : '';
         lines.push(`• ${act.title} — Owner: ${act.assignee.name}${timeRef}`);
@@ -85,7 +85,7 @@ export const FollowUpEmailModal: React.FC<FollowUpEmailModalProps> = ({
 
     // Next Steps & Agenda Topics
     if (m.topics && m.topics.length > 0) {
-      lines.push('### Next Steps & Discussion Areas');
+      lines.push('Next Steps & Discussion Areas');
       m.topics.forEach((t) => {
         lines.push(`• ${t.title}: ${t.bullets[0] || 'Follow up on deliverables'}`);
       });
@@ -254,28 +254,17 @@ export const FollowUpEmailModal: React.FC<FollowUpEmailModalProps> = ({
 
           {/* Editable Email Body */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div
+            <label
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
               }}
             >
-              <label
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}
-              >
-                Email Body (Editable)
-              </label>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                Format: Markdown / Plain text
-              </span>
-            </div>
+              EMAIL BODY
+            </label>
 
             <textarea
               value={bodyField}
