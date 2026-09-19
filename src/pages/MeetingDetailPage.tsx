@@ -6,7 +6,8 @@ import { ActionItemsList } from '../components/ActionItemsList';
 import { TranscriptViewer } from '../components/TranscriptViewer';
 import { AskFathomChat } from '../components/AskFathomChat';
 import { HighlightsViewer } from '../components/HighlightsViewer';
-import { ArrowLeft, Share2, Calendar, Clock, Sparkles, CheckSquare, MessageSquare, Scissors, FileText } from 'lucide-react';
+import { FollowUpEmailModal } from '../components/FollowUpEmailModal';
+import { ArrowLeft, Share2, Calendar, Clock, Sparkles, CheckSquare, MessageSquare, Scissors, FileText, Mail } from 'lucide-react';
 
 export const MeetingDetailPage: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ export const MeetingDetailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'actions' | 'transcript' | 'ask' | 'highlights'>('summary');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(activeMeeting?.title || '');
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   if (!activeMeeting) return null;
 
@@ -92,6 +94,16 @@ export const MeetingDetailPage: React.FC = () => {
         </div>
 
         <div className="detail-actions-right">
+          <button
+            className="btn-secondary"
+            onClick={() => setIsEmailModalOpen(true)}
+            title="Generate follow-up email from meeting intelligence"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Mail size={15} />
+            <span>✉ Follow-up Email</span>
+          </button>
+
           <button
             className="btn-share-modal"
             onClick={() => setIsShareModalOpen(true)}
@@ -170,6 +182,13 @@ export const MeetingDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Follow-up Email Modal */}
+      <FollowUpEmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        meeting={activeMeeting}
+      />
     </div>
   );
 };
