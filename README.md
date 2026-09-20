@@ -1,15 +1,17 @@
 # Fathom AI Meeting Notetaker — Product Clone
 
-## Overview
+A product-focused recreation of the core Fathom meeting-notetaking workflow, built as part of the 8x **“Rebuild a live product in 24 hours”** assignment.
 
-A product-focused recreation of the core Fathom meeting-notetaking workflow, built as part of the 8x "Rebuild a live product in 24 hours" assignment.
+## Live Demo
+
+**Deployed application:** https://fathom-ai-meeting-clone.vercel.app
 
 ## Core Experience
 
 * Meeting dashboard
 * Meeting playback experience
 * Synchronized transcript
-* AI-style meeting summaries
+* Meeting summaries
 * Summary templates
 * Action items with evidence
 * Meeting Intelligence
@@ -24,12 +26,37 @@ A product-focused recreation of the core Fathom meeting-notetaking workflow, bui
 
 ## Product Decisions
 
-This implementation prioritizes the highest-value post-meeting workflows: understanding what happened, verifying decisions against the conversation, identifying actions, resolving open questions, searching across meetings, and communicating outcomes.
+The implementation prioritizes the highest-value post-meeting workflows: understanding what happened, verifying decisions against the conversation, identifying actions, resolving open questions, searching across meetings, and communicating outcomes.
 
-In line with the assignment guidelines:
-* **Deterministic / Local Post-Meeting Intelligence:** AI responses, citations, decisions, and summaries are driven by deterministic local synthesis engines and pre-indexed conversation models. This provides instant, reliable, zero-latency interactions without external API rate-limiting or network volatility during evaluation.
-* **Traceable Evidence Principle:** Every critical takeaway, decision, open question, and action item is directly linked to an exact timestamp in the media player and transcript, allowing immediate verification against what was actually said.
-* **Simulated Capture Pipeline:** The recording bot and meeting ingest pipeline are simulated where appropriate, enabling testers to trigger live meeting capture workflows and generate post-meeting notes on demand.
+### Deterministic Post-Meeting Intelligence
+
+The prototype uses deterministic local synthesis and pre-indexed meeting data for summaries, decisions, action items, questions, Ask Fathom responses, and evidence citations.
+
+This was a deliberate scope decision for the 24-hour assignment: it keeps the experience fast and reliable during evaluation while allowing the implementation to focus on the core product workflow rather than external API dependencies.
+
+### Traceable Evidence
+
+Critical takeaways, decisions, open questions, and action items are linked to exact timestamps in the transcript and playback experience.
+
+This allows users to move from an insight directly to the underlying conversation and verify the information.
+
+### Simulated Capture
+
+The recording and meeting-ingest layer is simulated where appropriate, as permitted by the assignment. This allowed the implementation to focus on the post-meeting intelligence and collaboration experience.
+
+## How to Explore
+
+A recommended flow:
+
+1. Open the dashboard and select a meeting.
+2. Explore synchronized playback and transcript.
+3. Review the meeting summary and switch templates.
+4. Inspect action items and jump to their evidence.
+5. Explore Meeting Intelligence and trace decisions to the transcript.
+6. Try Ask Fathom and global search.
+7. Generate a follow-up email.
+8. Try participant-aware sharing.
+9. Explore the seeded 8-person, long-meeting experience.
 
 ## Tech Stack
 
@@ -40,8 +67,6 @@ In line with the assignment guidelines:
 * LocalStorage for persistence
 
 ## Running Locally
-
-To run the application locally in development mode:
 
 ```bash
 npm install
@@ -56,4 +81,6 @@ npm run build
 
 ## Assignment
 
-Built for the 8x live-product reconstruction assignment ("Rebuild a live product in 24 hours").
+Built for the 8x live-product reconstruction assignment:
+
+**“Rebuild a live product in 24 hours.”**
