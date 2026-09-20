@@ -191,7 +191,7 @@ export const MediaPlayer: React.FC = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.75rem' }}>
             <Volume2 size={14} />
-            <span>HD Audio 48kHz</span>
+            <span>Simulated Recording</span>
           </div>
         </div>
 
