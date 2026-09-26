@@ -15686,7 +15686,7 @@ var require_mimeScore = __commonJS({
 var require_mime_types = __commonJS({
   "node_modules/mime-types/index.js"(exports) {
     "use strict";
-    var db3 = require_mime_db();
+    var db = require_mime_db();
     var extname = __require("path").extname;
     var mimeScore = require_mimeScore();
     var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/;
@@ -15705,7 +15705,7 @@ var require_mime_types = __commonJS({
         return false;
       }
       var match = EXTRACT_TYPE_REGEXP.exec(type);
-      var mime = match && db3[match[1].toLowerCase()];
+      var mime = match && db[match[1].toLowerCase()];
       if (mime && mime.charset) {
         return mime.charset;
       }
@@ -15739,19 +15739,19 @@ var require_mime_types = __commonJS({
       }
       return exts[0];
     }
-    function lookup(path2) {
-      if (!path2 || typeof path2 !== "string") {
+    function lookup(path) {
+      if (!path || typeof path !== "string") {
         return false;
       }
-      var extension2 = extname("x." + path2).toLowerCase().slice(1);
+      var extension2 = extname("x." + path).toLowerCase().slice(1);
       if (!extension2) {
         return false;
       }
       return exports.types[extension2] || false;
     }
     function populateMaps(extensions, types) {
-      Object.keys(db3).forEach(function forEachMimeType(type) {
-        var mime = db3[type];
+      Object.keys(db).forEach(function forEachMimeType(type) {
+        var mime = db[type];
         var exts = mime.extensions;
         if (!exts || !exts.length) {
           return;
@@ -15772,14 +15772,14 @@ var require_mime_types = __commonJS({
       });
     }
     function _preferredType(ext, type0, type1) {
-      var score0 = type0 ? mimeScore(type0, db3[type0].source) : 0;
-      var score1 = type1 ? mimeScore(type1, db3[type1].source) : 0;
+      var score0 = type0 ? mimeScore(type0, db[type0].source) : 0;
+      var score1 = type1 ? mimeScore(type1, db[type1].source) : 0;
       return score0 > score1 ? type0 : type1;
     }
     function _preferredTypeLegacy(ext, type0, type1) {
       var SOURCE_RANK = ["nginx", "apache", void 0, "iana"];
-      var score0 = type0 ? SOURCE_RANK.indexOf(db3[type0].source) : 0;
-      var score1 = type1 ? SOURCE_RANK.indexOf(db3[type1].source) : 0;
+      var score0 = type0 ? SOURCE_RANK.indexOf(db[type0].source) : 0;
+      var score1 = type1 ? SOURCE_RANK.indexOf(db[type1].source) : 0;
       if (exports.types[extension] !== "application/octet-stream" && (score0 > score1 || score0 === score1 && exports.types[extension]?.slice(0, 12) === "application/")) {
         return type0;
       }
@@ -19424,13 +19424,13 @@ var require_view = __commonJS({
   "node_modules/express/lib/view.js"(exports, module) {
     "use strict";
     var debug = require_src()("express:view");
-    var path2 = __require("node:path");
+    var path = __require("node:path");
     var fs = __require("node:fs");
-    var dirname = path2.dirname;
-    var basename = path2.basename;
-    var extname = path2.extname;
-    var join = path2.join;
-    var resolve = path2.resolve;
+    var dirname = path.dirname;
+    var basename = path.basename;
+    var extname = path.extname;
+    var join = path.join;
+    var resolve = path.resolve;
     module.exports = View;
     function View(name, options) {
       var opts = options || {};
@@ -19459,17 +19459,17 @@ var require_view = __commonJS({
       this.path = this.lookup(fileName);
     }
     View.prototype.lookup = function lookup(name) {
-      var path3;
+      var path2;
       var roots = [].concat(this.root);
       debug('lookup "%s"', name);
-      for (var i = 0; i < roots.length && !path3; i++) {
+      for (var i = 0; i < roots.length && !path2; i++) {
         var root = roots[i];
         var loc = resolve(root, name);
         var dir = dirname(loc);
         var file = basename(loc);
-        path3 = this.resolve(dir, file);
+        path2 = this.resolve(dir, file);
       }
-      return path3;
+      return path2;
     };
     View.prototype.render = function render(options, callback) {
       var sync = true;
@@ -19491,21 +19491,21 @@ var require_view = __commonJS({
     };
     View.prototype.resolve = function resolve2(dir, file) {
       var ext = this.ext;
-      var path3 = join(dir, file);
-      var stat = tryStat(path3);
+      var path2 = join(dir, file);
+      var stat = tryStat(path2);
       if (stat && stat.isFile()) {
-        return path3;
+        return path2;
       }
-      path3 = join(dir, basename(file, ext), "index" + ext);
-      stat = tryStat(path3);
+      path2 = join(dir, basename(file, ext), "index" + ext);
+      stat = tryStat(path2);
       if (stat && stat.isFile()) {
-        return path3;
+        return path2;
       }
     };
-    function tryStat(path3) {
-      debug('stat "%s"', path3);
+    function tryStat(path2) {
+      debug('stat "%s"', path2);
       try {
-        return fs.statSync(path3);
+        return fs.statSync(path2);
       } catch (e) {
         return void 0;
       }
@@ -20761,15 +20761,15 @@ var require_dist4 = __commonJS({
       let index = 0;
       function consumeUntil(end) {
         const output = [];
-        let path2 = "";
+        let path = "";
         function writePath() {
-          if (!path2)
+          if (!path)
             return;
           output.push({
             type: "text",
-            value: encodePath(path2)
+            value: encodePath(path)
           });
-          path2 = "";
+          path = "";
         }
         while (index < chars.length) {
           const value = chars[index++];
@@ -20781,7 +20781,7 @@ var require_dist4 = __commonJS({
             if (index === chars.length) {
               throw new PathError(`Unexpected end after \\ at index ${index}`, str);
             }
-            path2 += chars[index++];
+            path += chars[index++];
             continue;
           }
           if (value === ":" || value === "*") {
@@ -20825,7 +20825,7 @@ var require_dist4 = __commonJS({
           if (value === "}" || value === "(" || value === ")" || value === "[" || value === "]" || value === "+" || value === "?" || value === "!") {
             throw new PathError(`Unexpected ${value} at index ${index - 1}`, str);
           }
-          path2 += value;
+          path += value;
         }
         if (end) {
           throw new PathError(`Unexpected end at index ${index}, expected ${end}`, str);
@@ -20835,17 +20835,17 @@ var require_dist4 = __commonJS({
       }
       return new TokenData(consumeUntil(""), str);
     }
-    function compile(path2, options = {}) {
+    function compile(path, options = {}) {
       const { encode = encodeURIComponent, delimiter = DEFAULT_DELIMITER } = options;
-      const data = typeof path2 === "object" ? path2 : parse(path2, options);
+      const data = typeof path === "object" ? path : parse(path, options);
       const fn = tokensToFunction(data.tokens, delimiter, encode);
-      return function path3(params = {}) {
+      return function path2(params = {}) {
         const missing = [];
-        const path4 = fn(params, missing);
+        const path3 = fn(params, missing);
         if (missing.length) {
           throw new TypeError(`Missing parameters: ${missing.join(", ")}`);
         }
-        return path4;
+        return path3;
       };
     }
     function tokensToFunction(tokens, delimiter, encode) {
@@ -20907,9 +20907,9 @@ var require_dist4 = __commonJS({
         return encodeValue(value);
       };
     }
-    function match(path2, options = {}) {
+    function match(path, options = {}) {
       const { decode = decodeURIComponent, delimiter = DEFAULT_DELIMITER } = options;
-      const { regexp, keys } = pathToRegexp(path2, options);
+      const { regexp, keys } = pathToRegexp(path, options);
       const decoders = keys.map((key) => {
         if (decode === false)
           return NOOP_VALUE;
@@ -20921,7 +20921,7 @@ var require_dist4 = __commonJS({
         const m = regexp.exec(input);
         if (!m)
           return false;
-        const path3 = m[0];
+        const path2 = m[0];
         const params = /* @__PURE__ */ Object.create(null);
         for (let i = 1; i < m.length; i++) {
           if (m[i] === void 0)
@@ -20930,21 +20930,21 @@ var require_dist4 = __commonJS({
           const decoder = decoders[i - 1];
           params[key.name] = decoder(m[i]);
         }
-        return { path: path3, params };
+        return { path: path2, params };
       };
     }
-    function pathToRegexp(path2, options = {}) {
+    function pathToRegexp(path, options = {}) {
       const { delimiter = DEFAULT_DELIMITER, end = true, sensitive = false, trailing = true } = options;
       const keys = [];
       let source = "";
       let combinations = 0;
-      function process2(path3) {
-        if (Array.isArray(path3)) {
-          for (const p of path3)
+      function process2(path2) {
+        if (Array.isArray(path2)) {
+          for (const p of path2)
             process2(p);
           return;
         }
-        const data = typeof path3 === "object" ? path3 : parse(path3, options);
+        const data = typeof path2 === "object" ? path2 : parse(path2, options);
         flatten(data.tokens, 0, [], (tokens) => {
           if (combinations >= 256) {
             throw new PathError("Too many path combinations", data.originalPath);
@@ -20955,7 +20955,7 @@ var require_dist4 = __commonJS({
           combinations++;
         });
       }
-      process2(path2);
+      process2(path);
       let pattern = `^(?:${source})`;
       if (trailing)
         pattern += "(?:" + escape2(delimiter) + "$)?";
@@ -21095,18 +21095,18 @@ var require_layer = __commonJS({
     var TRAILING_SLASH_REGEXP = /\/+$/;
     var MATCHING_GROUP_REGEXP = /\((?:\?<(.*?)>)?(?!\?)/g;
     module.exports = Layer;
-    function Layer(path2, options, fn) {
+    function Layer(path, options, fn) {
       if (!(this instanceof Layer)) {
-        return new Layer(path2, options, fn);
+        return new Layer(path, options, fn);
       }
-      debug("new %o", path2);
+      debug("new %o", path);
       const opts = options || {};
       this.handle = fn;
       this.keys = [];
       this.name = fn.name || "<anonymous>";
       this.params = void 0;
       this.path = void 0;
-      this.slash = path2 === "/" && opts.end === false;
+      this.slash = path === "/" && opts.end === false;
       function matcher(_path) {
         if (_path instanceof RegExp) {
           const keys = [];
@@ -21145,7 +21145,7 @@ var require_layer = __commonJS({
           decode: decodeParam
         });
       }
-      this.matchers = Array.isArray(path2) ? path2.map(matcher) : [matcher(path2)];
+      this.matchers = Array.isArray(path) ? path.map(matcher) : [matcher(path)];
     }
     Layer.prototype.handleError = function handleError(error, req, res, next) {
       const fn = this.handle;
@@ -21185,9 +21185,9 @@ var require_layer = __commonJS({
         next(err);
       }
     };
-    Layer.prototype.match = function match(path2) {
+    Layer.prototype.match = function match(path) {
       let match2;
-      if (path2 != null) {
+      if (path != null) {
         if (this.slash) {
           this.params = {};
           this.path = "";
@@ -21195,7 +21195,7 @@ var require_layer = __commonJS({
         }
         let i = 0;
         while (!match2 && i < this.matchers.length) {
-          match2 = this.matchers[i](path2);
+          match2 = this.matchers[i](path);
           i++;
         }
       }
@@ -21223,13 +21223,13 @@ var require_layer = __commonJS({
         throw err;
       }
     }
-    function loosen(path2) {
-      if (path2 instanceof RegExp || path2 === "/") {
-        return path2;
+    function loosen(path) {
+      if (path instanceof RegExp || path === "/") {
+        return path;
       }
-      return Array.isArray(path2) ? path2.map(function(p) {
+      return Array.isArray(path) ? path.map(function(p) {
         return loosen(p);
-      }) : String(path2).replace(TRAILING_SLASH_REGEXP, "");
+      }) : String(path).replace(TRAILING_SLASH_REGEXP, "");
     }
   }
 });
@@ -21245,9 +21245,9 @@ var require_route = __commonJS({
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
     module.exports = Route;
-    function Route(path2) {
-      debug("new %o", path2);
-      this.path = path2;
+    function Route(path) {
+      debug("new %o", path);
+      this.path = path;
       this.stack = [];
       this.methods = /* @__PURE__ */ Object.create(null);
     }
@@ -21455,8 +21455,8 @@ var require_router = __commonJS({
         if (++sync > 100) {
           return setImmediate(next, err);
         }
-        const path2 = getPathname(req);
-        if (path2 == null) {
+        const path = getPathname(req);
+        if (path == null) {
           return done(layerError);
         }
         let layer;
@@ -21464,7 +21464,7 @@ var require_router = __commonJS({
         let route;
         while (match !== true && idx < stack.length) {
           layer = stack[idx++];
-          match = matchLayer(layer, path2);
+          match = matchLayer(layer, path);
           route = layer.route;
           if (typeof match !== "boolean") {
             layerError = layerError || match;
@@ -21502,18 +21502,18 @@ var require_router = __commonJS({
           } else if (route) {
             layer.handleRequest(req, res, next);
           } else {
-            trimPrefix(layer, layerError, layerPath, path2);
+            trimPrefix(layer, layerError, layerPath, path);
           }
           sync = 0;
         });
       }
-      function trimPrefix(layer, layerError, layerPath, path2) {
+      function trimPrefix(layer, layerError, layerPath, path) {
         if (layerPath.length !== 0) {
-          if (layerPath !== path2.substring(0, layerPath.length)) {
+          if (layerPath !== path.substring(0, layerPath.length)) {
             next(layerError);
             return;
           }
-          const c = path2[layerPath.length];
+          const c = path[layerPath.length];
           if (c && c !== "/") {
             next(layerError);
             return;
@@ -21537,7 +21537,7 @@ var require_router = __commonJS({
     };
     Router.prototype.use = function use(handler) {
       let offset = 0;
-      let path2 = "/";
+      let path = "/";
       if (typeof handler !== "function") {
         let arg = handler;
         while (Array.isArray(arg) && arg.length !== 0) {
@@ -21545,7 +21545,7 @@ var require_router = __commonJS({
         }
         if (typeof arg !== "function") {
           offset = 1;
-          path2 = handler;
+          path = handler;
         }
       }
       const callbacks = flatten.call(slice.call(arguments, offset), Infinity);
@@ -21557,8 +21557,8 @@ var require_router = __commonJS({
         if (typeof fn !== "function") {
           throw new TypeError("argument handler must be a function");
         }
-        debug("use %o %s", path2, fn.name || "<anonymous>");
-        const layer = new Layer(path2, {
+        debug("use %o %s", path, fn.name || "<anonymous>");
+        const layer = new Layer(path, {
           sensitive: this.caseSensitive,
           strict: false,
           end: false
@@ -21568,9 +21568,9 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router.prototype.route = function route(path2) {
-      const route2 = new Route(path2);
-      const layer = new Layer(path2, {
+    Router.prototype.route = function route(path) {
+      const route2 = new Route(path);
+      const layer = new Layer(path, {
         sensitive: this.caseSensitive,
         strict: this.strict,
         end: true
@@ -21583,8 +21583,8 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router.prototype[method] = function(path2) {
-        const route = this.route(path2);
+      Router.prototype[method] = function(path) {
+        const route = this.route(path);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
       };
@@ -21613,9 +21613,9 @@ var require_router = __commonJS({
       const fqdnIndex = url.substring(0, pathLength).indexOf("://");
       return fqdnIndex !== -1 ? url.substring(0, url.indexOf("/", 3 + fqdnIndex)) : void 0;
     }
-    function matchLayer(layer, path2) {
+    function matchLayer(layer, path) {
       try {
-        return layer.match(path2);
+        return layer.match(path);
       } catch (err) {
         return err;
       }
@@ -21843,7 +21843,7 @@ var require_application = __commonJS({
     };
     app2.use = function use(fn) {
       var offset = 0;
-      var path2 = "/";
+      var path = "/";
       if (typeof fn !== "function") {
         var arg = fn;
         while (Array.isArray(arg) && arg.length !== 0) {
@@ -21851,7 +21851,7 @@ var require_application = __commonJS({
         }
         if (typeof arg !== "function") {
           offset = 1;
-          path2 = fn;
+          path = fn;
         }
       }
       var fns = flatten.call(slice.call(arguments, offset), Infinity);
@@ -21861,12 +21861,12 @@ var require_application = __commonJS({
       var router = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router.use(path2, fn2);
+          return router.use(path, fn2);
         }
-        debug(".use app under %s", path2);
-        fn2.mountpath = path2;
+        debug(".use app under %s", path);
+        fn2.mountpath = path;
         fn2.parent = this;
-        router.use(path2, function mounted_app(req, res, next) {
+        router.use(path, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -21878,8 +21878,8 @@ var require_application = __commonJS({
       }, this);
       return this;
     };
-    app2.route = function route(path2) {
-      return this.router.route(path2);
+    app2.route = function route(path) {
+      return this.router.route(path);
     };
     app2.engine = function engine(ext, fn) {
       if (typeof fn !== "function") {
@@ -21922,7 +21922,7 @@ var require_application = __commonJS({
       }
       return this;
     };
-    app2.path = function path2() {
+    app2.path = function path() {
       return this.parent ? this.parent.path() + this.mountpath : "";
     };
     app2.enabled = function enabled(setting) {
@@ -21938,17 +21938,17 @@ var require_application = __commonJS({
       return this.set(setting, false);
     };
     methods.forEach(function(method) {
-      app2[method] = function(path2) {
+      app2[method] = function(path) {
         if (method === "get" && arguments.length === 1) {
-          return this.set(path2);
+          return this.set(path);
         }
-        var route = this.route(path2);
+        var route = this.route(path);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
       };
     });
-    app2.all = function all(path2) {
-      var route = this.route(path2);
+    app2.all = function all(path) {
+      var route = this.route(path);
       var args = slice.call(arguments, 1);
       for (var i = 0; i < methods.length; i++) {
         route[methods[i]].apply(route, args);
@@ -22933,7 +22933,7 @@ var require_request = __commonJS({
       var subdomains2 = !isIP(hostname) ? hostname.split(".").reverse() : [hostname];
       return subdomains2.slice(offset);
     });
-    defineGetter(req, "path", function path2() {
+    defineGetter(req, "path", function path() {
       return parse(this).pathname;
     });
     defineGetter(req, "host", function host() {
@@ -23144,8 +23144,8 @@ var require_content_disposition = __commonJS({
       this.type = type;
       this.parameters = parameters;
     }
-    function basename(path2) {
-      const normalized = path2.replaceAll("\\", "/");
+    function basename(path) {
+      const normalized = path.replaceAll("\\", "/");
       let end = normalized.length;
       while (end > 0 && normalized[end - 1] === "/") {
         end--;
@@ -23391,27 +23391,27 @@ var require_send = __commonJS({
     var ms = require_ms();
     var onFinished = require_on_finished();
     var parseRange = require_range_parser();
-    var path2 = __require("path");
+    var path = __require("path");
     var statuses = require_statuses();
     var Stream = __require("stream");
     var util = __require("util");
-    var extname = path2.extname;
-    var join = path2.join;
-    var normalize = path2.normalize;
-    var resolve = path2.resolve;
-    var sep = path2.sep;
+    var extname = path.extname;
+    var join = path.join;
+    var normalize = path.normalize;
+    var resolve = path.resolve;
+    var sep = path.sep;
     var BYTES_RANGE_REGEXP = /^ *bytes=/;
     var MAX_MAXAGE = 60 * 60 * 24 * 365 * 1e3;
     var UP_PATH_REGEXP = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
     module.exports = send;
-    function send(req, path3, options) {
-      return new SendStream(req, path3, options);
+    function send(req, path2, options) {
+      return new SendStream(req, path2, options);
     }
-    function SendStream(req, path3, options) {
+    function SendStream(req, path2, options) {
       Stream.call(this);
       var opts = options || {};
       this.options = opts;
-      this.path = path3;
+      this.path = path2;
       this.req = req;
       this._acceptRanges = opts.acceptRanges !== void 0 ? Boolean(opts.acceptRanges) : true;
       this._cacheControl = opts.cacheControl !== void 0 ? Boolean(opts.cacheControl) : true;
@@ -23525,10 +23525,10 @@ var require_send = __commonJS({
       var lastModified = this.res.getHeader("Last-Modified");
       return parseHttpDate(lastModified) <= parseHttpDate(ifRange);
     };
-    SendStream.prototype.redirect = function redirect(path3) {
+    SendStream.prototype.redirect = function redirect(path2) {
       var res = this.res;
       if (hasListeners(this, "directory")) {
-        this.emit("directory", res, path3);
+        this.emit("directory", res, path2);
         return;
       }
       if (this.hasTrailingSlash()) {
@@ -23548,38 +23548,38 @@ var require_send = __commonJS({
     SendStream.prototype.pipe = function pipe(res) {
       var root = this._root;
       this.res = res;
-      var path3 = decode(this.path);
-      if (path3 === -1) {
+      var path2 = decode(this.path);
+      if (path2 === -1) {
         this.error(400);
         return res;
       }
-      if (~path3.indexOf("\0")) {
+      if (~path2.indexOf("\0")) {
         this.error(400);
         return res;
       }
       var parts;
       if (root !== null) {
-        if (path3) {
-          path3 = normalize("." + sep + path3);
+        if (path2) {
+          path2 = normalize("." + sep + path2);
         }
-        if (UP_PATH_REGEXP.test(path3)) {
-          debug('malicious path "%s"', path3);
+        if (UP_PATH_REGEXP.test(path2)) {
+          debug('malicious path "%s"', path2);
           this.error(403);
           return res;
         }
-        parts = path3.split(sep);
-        path3 = normalize(join(root, path3));
+        parts = path2.split(sep);
+        path2 = normalize(join(root, path2));
       } else {
-        if (UP_PATH_REGEXP.test(path3)) {
-          debug('malicious path "%s"', path3);
+        if (UP_PATH_REGEXP.test(path2)) {
+          debug('malicious path "%s"', path2);
           this.error(403);
           return res;
         }
-        parts = normalize(path3).split(sep);
-        path3 = resolve(path3);
+        parts = normalize(path2).split(sep);
+        path2 = resolve(path2);
       }
       if (containsDotFile(parts)) {
-        debug('%s dotfile "%s"', this._dotfiles, path3);
+        debug('%s dotfile "%s"', this._dotfiles, path2);
         switch (this._dotfiles) {
           case "allow":
             break;
@@ -23593,13 +23593,13 @@ var require_send = __commonJS({
         }
       }
       if (this._index.length && this.hasTrailingSlash()) {
-        this.sendIndex(path3);
+        this.sendIndex(path2);
         return res;
       }
-      this.sendFile(path3);
+      this.sendFile(path2);
       return res;
     };
-    SendStream.prototype.send = function send2(path3, stat) {
+    SendStream.prototype.send = function send2(path2, stat) {
       var len = stat.size;
       var options = this.options;
       var opts = {};
@@ -23611,9 +23611,9 @@ var require_send = __commonJS({
         this.headersAlreadySent();
         return;
       }
-      debug('pipe "%s"', path3);
-      this.setHeader(path3, stat);
-      this.type(path3);
+      debug('pipe "%s"', path2);
+      this.setHeader(path2, stat);
+      this.type(path2);
       if (this.isConditionalGET()) {
         if (this.isPreconditionFailure()) {
           this.error(412);
@@ -23662,28 +23662,28 @@ var require_send = __commonJS({
         res.end();
         return;
       }
-      this.stream(path3, opts);
+      this.stream(path2, opts);
     };
-    SendStream.prototype.sendFile = function sendFile(path3) {
+    SendStream.prototype.sendFile = function sendFile(path2) {
       var i = 0;
       var self = this;
-      debug('stat "%s"', path3);
-      fs.stat(path3, function onstat(err, stat) {
-        var pathEndsWithSep = path3[path3.length - 1] === sep;
-        if (err && err.code === "ENOENT" && !extname(path3) && !pathEndsWithSep) {
+      debug('stat "%s"', path2);
+      fs.stat(path2, function onstat(err, stat) {
+        var pathEndsWithSep = path2[path2.length - 1] === sep;
+        if (err && err.code === "ENOENT" && !extname(path2) && !pathEndsWithSep) {
           return next(err);
         }
         if (err) return self.onStatError(err);
-        if (stat.isDirectory()) return self.redirect(path3);
+        if (stat.isDirectory()) return self.redirect(path2);
         if (pathEndsWithSep) return self.error(404);
-        self.emit("file", path3, stat);
-        self.send(path3, stat);
+        self.emit("file", path2, stat);
+        self.send(path2, stat);
       });
       function next(err) {
         if (self._extensions.length <= i) {
           return err ? self.onStatError(err) : self.error(404);
         }
-        var p = path3 + "." + self._extensions[i++];
+        var p = path2 + "." + self._extensions[i++];
         debug('stat "%s"', p);
         fs.stat(p, function(err2, stat) {
           if (err2) return next(err2);
@@ -23693,7 +23693,7 @@ var require_send = __commonJS({
         });
       }
     };
-    SendStream.prototype.sendIndex = function sendIndex(path3) {
+    SendStream.prototype.sendIndex = function sendIndex(path2) {
       var i = -1;
       var self = this;
       function next(err) {
@@ -23701,7 +23701,7 @@ var require_send = __commonJS({
           if (err) return self.onStatError(err);
           return self.error(404);
         }
-        var p = join(path3, self._index[i]);
+        var p = join(path2, self._index[i]);
         debug('stat "%s"', p);
         fs.stat(p, function(err2, stat) {
           if (err2) return next(err2);
@@ -23712,10 +23712,10 @@ var require_send = __commonJS({
       }
       next();
     };
-    SendStream.prototype.stream = function stream(path3, options) {
+    SendStream.prototype.stream = function stream(path2, options) {
       var self = this;
       var res = this.res;
-      var stream2 = fs.createReadStream(path3, options);
+      var stream2 = fs.createReadStream(path2, options);
       this.emit("stream", stream2);
       stream2.pipe(res);
       function cleanup() {
@@ -23730,17 +23730,17 @@ var require_send = __commonJS({
         self.emit("end");
       });
     };
-    SendStream.prototype.type = function type(path3) {
+    SendStream.prototype.type = function type(path2) {
       var res = this.res;
       if (res.getHeader("Content-Type")) return;
-      var ext = extname(path3);
+      var ext = extname(path2);
       var type2 = mime.contentType(ext) || "application/octet-stream";
       debug("content-type %s", type2);
       res.setHeader("Content-Type", type2);
     };
-    SendStream.prototype.setHeader = function setHeader(path3, stat) {
+    SendStream.prototype.setHeader = function setHeader(path2, stat) {
       var res = this.res;
-      this.emit("headers", res, path3, stat);
+      this.emit("headers", res, path2, stat);
       if (this._acceptRanges && !res.getHeader("Accept-Ranges")) {
         debug("accept ranges");
         res.setHeader("Accept-Ranges", "bytes");
@@ -23798,9 +23798,9 @@ var require_send = __commonJS({
       }
       return err instanceof Error ? createError(status, err, { expose: false }) : createError(status, err);
     }
-    function decode(path3) {
+    function decode(path2) {
       try {
-        return decodeURIComponent(path3);
+        return decodeURIComponent(path2);
       } catch (err) {
         return -1;
       }
@@ -23944,7 +23944,7 @@ var require_response = __commonJS({
     var http = __require("node:http");
     var onFinished = require_on_finished();
     var mime = require_mime_types();
-    var path2 = __require("node:path");
+    var path = __require("node:path");
     var pathIsAbsolute = __require("node:path").isAbsolute;
     var statuses = require_statuses();
     var sign = require_cookie_signature().sign;
@@ -23953,8 +23953,8 @@ var require_response = __commonJS({
     var setCharset = require_utils3().setCharset;
     var cookie = require_cookie();
     var send = require_send();
-    var extname = path2.extname;
-    var resolve = path2.resolve;
+    var extname = path.extname;
+    var resolve = path.resolve;
     var vary = require_vary();
     var { Buffer: Buffer2 } = __require("node:buffer");
     var res = Object.create(http.ServerResponse.prototype);
@@ -24099,26 +24099,26 @@ var require_response = __commonJS({
       this.type("txt");
       return this.send(body);
     };
-    res.sendFile = function sendFile(path3, options, callback) {
+    res.sendFile = function sendFile(path2, options, callback) {
       var done = callback;
       var req = this.req;
       var res2 = this;
       var next = req.next;
       var opts = options || {};
-      if (!path3) {
+      if (!path2) {
         throw new TypeError("path argument is required to res.sendFile");
       }
-      if (typeof path3 !== "string") {
+      if (typeof path2 !== "string") {
         throw new TypeError("path must be a string to res.sendFile");
       }
       if (typeof options === "function") {
         done = options;
         opts = {};
       }
-      if (!opts.root && !pathIsAbsolute(path3)) {
+      if (!opts.root && !pathIsAbsolute(path2)) {
         throw new TypeError("path must be absolute or specify root to res.sendFile");
       }
-      var pathname = encodeURI(path3);
+      var pathname = encodeURI(path2);
       opts.etag = this.app.enabled("etag");
       var file = send(req, pathname, opts);
       sendfile(res2, file, opts, function(err) {
@@ -24129,7 +24129,7 @@ var require_response = __commonJS({
         }
       });
     };
-    res.download = function download(path3, filename, options, callback) {
+    res.download = function download(path2, filename, options, callback) {
       var done = callback;
       var name = filename;
       var opts = options || null;
@@ -24146,7 +24146,7 @@ var require_response = __commonJS({
         opts = filename;
       }
       var headers = {
-        "Content-Disposition": contentDisposition(name || path3)
+        "Content-Disposition": contentDisposition(name || path2)
       };
       if (opts && opts.headers) {
         var keys = Object.keys(opts.headers);
@@ -24159,7 +24159,7 @@ var require_response = __commonJS({
       }
       opts = Object.create(opts);
       opts.headers = headers;
-      var fullPath = !opts.root ? resolve(path3) : path3;
+      var fullPath = !opts.root ? resolve(path2) : path2;
       return this.sendFile(fullPath, opts, done);
     };
     res.contentType = res.type = function contentType(type) {
@@ -24441,11 +24441,11 @@ var require_serve_static = __commonJS({
         }
         var forwardError = !fallthrough;
         var originalUrl = parseUrl.original(req);
-        var path2 = parseUrl(req).pathname;
-        if (path2 === "/" && originalUrl.pathname.substr(-1) !== "/") {
-          path2 = "";
+        var path = parseUrl(req).pathname;
+        if (path === "/" && originalUrl.pathname.substr(-1) !== "/") {
+          path = "";
         }
-        var stream = send(req, path2, opts);
+        var stream = send(req, path, opts);
         stream.on("directory", onDirectory);
         if (setHeaders) {
           stream.on("headers", setHeaders);
@@ -24834,294 +24834,6 @@ var require_lib3 = __commonJS({
 var import_config = __toESM(require_config(), 1);
 var import_express = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
-
-// server/db.ts
-var DB_PATH = process.env.DB_PATH || path.join("/tmp", "meetwise.db");
-var db2 = null;
-function getDb() {
-  if (process.env.VERCEL) {
-    return null;
-  }
-  if (!db2) {
-    try {
-      const pkg = "better-sqlite3";
-      const Database = eval("require")(pkg);
-      db2 = new Database(DB_PATH);
-      db2.pragma("foreign_keys = ON");
-      db2.pragma("journal_mode = WAL");
-    } catch (err) {
-      console.warn("SQLite initialization skipped or failed:", err);
-    }
-  }
-  return db2;
-}
-function initDatabase() {
-  if (process.env.VERCEL) return;
-  const database = getDb();
-  if (!database) return;
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS participants (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      avatar TEXT NOT NULL,
-      role TEXT NOT NULL,
-      color TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS meetings (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      original_calendar_title TEXT,
-      date TEXT NOT NULL,
-      duration_seconds REAL NOT NULL,
-      overview TEXT NOT NULL,
-      active_template TEXT DEFAULT 'executive',
-      templates_json TEXT NOT NULL,
-      suggested_questions_json TEXT NOT NULL,
-      tags_json TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS meeting_participants (
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      participant_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-      PRIMARY KEY (meeting_id, participant_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS transcript_utterances (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      speaker_id TEXT NOT NULL REFERENCES participants(id),
-      speaker_name TEXT NOT NULL,
-      speaker_avatar TEXT NOT NULL,
-      start_time REAL NOT NULL,
-      end_time REAL NOT NULL,
-      text TEXT NOT NULL,
-      sequence_order INTEGER NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS action_items (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      assignee_id TEXT NOT NULL REFERENCES participants(id),
-      completed INTEGER NOT NULL DEFAULT 0,
-      timestamp REAL NOT NULL,
-      source_quote TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS decisions (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      text TEXT NOT NULL,
-      timestamp REAL,
-      sequence_order INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS open_questions (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      question TEXT NOT NULL,
-      timestamp REAL,
-      speaker_name TEXT,
-      context TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS highlights (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      start_time REAL NOT NULL,
-      end_time REAL NOT NULL,
-      speaker_name TEXT NOT NULL,
-      summary TEXT NOT NULL,
-      tag TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS topic_discussions (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      timestamp REAL NOT NULL,
-      bullets_json TEXT NOT NULL,
-      sequence_order INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS shares (
-      id TEXT PRIMARY KEY,
-      meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-      email TEXT NOT NULL,
-      name TEXT,
-      avatar TEXT,
-      is_attendee INTEGER NOT NULL DEFAULT 0,
-      shared_at TEXT NOT NULL,
-      revoked INTEGER NOT NULL DEFAULT 0
-    );
-
-    -- Performance Indexes
-    CREATE INDEX IF NOT EXISTS idx_utterances_meeting ON transcript_utterances(meeting_id, sequence_order);
-    CREATE INDEX IF NOT EXISTS idx_actions_meeting ON action_items(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_actions_assignee ON action_items(assignee_id);
-    CREATE INDEX IF NOT EXISTS idx_decisions_meeting ON decisions(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_questions_meeting ON open_questions(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_topics_meeting ON topic_discussions(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_highlights_meeting ON highlights(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_meeting_participants ON meeting_participants(meeting_id);
-    CREATE INDEX IF NOT EXISTS idx_mp_participant ON meeting_participants(participant_id);
-  `);
-  const safeAddColumn = (table, column, def) => {
-    try {
-      const cols = database.prepare(`PRAGMA table_info(${table})`).all();
-      if (!cols.some((c) => c.name === column)) {
-        database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
-      }
-    } catch {
-    }
-  };
-  safeAddColumn("action_items", "confidence", "REAL DEFAULT 1.0");
-  safeAddColumn("action_items", "evidence_start", "REAL");
-  safeAddColumn("action_items", "evidence_end", "REAL");
-  safeAddColumn("action_items", "source_utterance_id", "TEXT");
-  safeAddColumn("decisions", "confidence", "REAL DEFAULT 1.0");
-  safeAddColumn("decisions", "source_utterance_id", "TEXT");
-  safeAddColumn("open_questions", "confidence", "REAL DEFAULT 1.0");
-  safeAddColumn("open_questions", "source_utterance_id", "TEXT");
-}
-if (!process.env.VERCEL) {
-  initDatabase();
-}
-function getFullMeetingById(id) {
-  const meetingRow = db2.prepare(`SELECT * FROM meetings WHERE id = ?`).get(id);
-  if (!meetingRow) return null;
-  const participants2 = db2.prepare(`
-    SELECT p.* FROM participants p
-    JOIN meeting_participants mp ON p.id = mp.participant_id
-    WHERE mp.meeting_id = ?
-  `).all(id);
-  const transcriptRows = db2.prepare(`
-    SELECT id, speaker_id AS speakerId, speaker_name AS speakerName,
-           speaker_avatar AS speakerAvatar, start_time AS startTime,
-           end_time AS endTime, text
-    FROM transcript_utterances
-    WHERE meeting_id = ?
-    ORDER BY sequence_order ASC
-  `).all(id);
-  const actionRows = db2.prepare(`
-    SELECT a.id, a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-           a.confidence, a.evidence_start AS evidenceStart, a.evidence_end AS evidenceEnd,
-           a.source_utterance_id AS sourceUtteranceId,
-           p.id AS p_id, p.name AS p_name, p.email AS p_email,
-           p.avatar AS p_avatar, p.role AS p_role, p.color AS p_color
-    FROM action_items a
-    JOIN participants p ON a.assignee_id = p.id
-    WHERE a.meeting_id = ?
-    ORDER BY a.timestamp ASC
-  `).all(id);
-  const actionItems = actionRows.map((row) => ({
-    id: row.id,
-    title: row.title,
-    completed: Boolean(row.completed),
-    timestamp: row.timestamp,
-    sourceQuote: row.sourceQuote,
-    confidence: row.confidence !== null && row.confidence !== void 0 ? row.confidence : 1,
-    evidenceStart: row.evidenceStart !== null ? row.evidenceStart : void 0,
-    evidenceEnd: row.evidenceEnd !== null ? row.evidenceEnd : void 0,
-    sourceUtteranceId: row.sourceUtteranceId || void 0,
-    assignee: {
-      id: row.p_id,
-      name: row.p_name,
-      email: row.p_email,
-      avatar: row.p_avatar,
-      role: row.p_role,
-      color: row.p_color
-    }
-  }));
-  const decisionRows = db2.prepare(`
-    SELECT id, text, timestamp, confidence, source_utterance_id AS sourceUtteranceId
-    FROM decisions
-    WHERE meeting_id = ?
-    ORDER BY sequence_order ASC
-  `).all(id);
-  const keyDecisions = decisionRows.map((d) => d.text);
-  const keyDecisionDetails = decisionRows.map((d) => ({
-    id: d.id,
-    text: d.text,
-    timestamp: d.timestamp !== null ? d.timestamp : void 0,
-    confidence: d.confidence !== null && d.confidence !== void 0 ? d.confidence : 1,
-    sourceUtteranceId: d.sourceUtteranceId || void 0
-  }));
-  const openQuestionRows = db2.prepare(`
-    SELECT id, question, timestamp, speaker_name AS speakerName, context,
-           confidence, source_utterance_id AS sourceUtteranceId
-    FROM open_questions
-    WHERE meeting_id = ?
-    ORDER BY timestamp ASC
-  `).all(id);
-  const openQuestions = openQuestionRows.map((q) => ({
-    id: q.id,
-    question: q.question,
-    timestamp: q.timestamp !== null ? q.timestamp : void 0,
-    speakerName: q.speakerName || void 0,
-    context: q.context || void 0,
-    confidence: q.confidence !== null && q.confidence !== void 0 ? q.confidence : 1,
-    sourceUtteranceId: q.sourceUtteranceId || void 0
-  }));
-  const topicRows = db2.prepare(`
-    SELECT title, timestamp, bullets_json
-    FROM topic_discussions
-    WHERE meeting_id = ?
-    ORDER BY sequence_order ASC
-  `).all(id);
-  const topics = topicRows.map((t) => ({
-    title: t.title,
-    timestamp: t.timestamp,
-    bullets: JSON.parse(t.bullets_json)
-  }));
-  const highlightRows = db2.prepare(`
-    SELECT id, title, start_time AS startTime, end_time AS endTime,
-           speaker_name AS speakerName, summary, tag
-    FROM highlights
-    WHERE meeting_id = ?
-    ORDER BY start_time ASC
-  `).all(id);
-  const shareRows = db2.prepare(`
-    SELECT email, name, avatar, is_attendee AS isAttendee, shared_at AS sharedAt, revoked
-    FROM shares
-    WHERE meeting_id = ?
-    ORDER BY shared_at ASC
-  `).all(id);
-  const shares = shareRows.map((s) => ({
-    email: s.email,
-    name: s.name || void 0,
-    avatar: s.avatar || void 0,
-    isAttendee: Boolean(s.isAttendee),
-    sharedAt: s.sharedAt,
-    revoked: Boolean(s.revoked)
-  }));
-  return {
-    id: meetingRow.id,
-    title: meetingRow.title,
-    originalCalendarTitle: meetingRow.original_calendar_title || void 0,
-    date: meetingRow.date,
-    durationSeconds: meetingRow.duration_seconds,
-    participants: participants2,
-    overview: meetingRow.overview,
-    keyDecisions,
-    keyDecisionDetails,
-    topics,
-    actionItems,
-    highlights: highlightRows,
-    openQuestions,
-    transcript: transcriptRows,
-    shares,
-    activeTemplate: meetingRow.active_template,
-    templates: JSON.parse(meetingRow.templates_json || "{}"),
-    suggestedQuestions: JSON.parse(meetingRow.suggested_questions_json || "[]"),
-    tags: JSON.parse(meetingRow.tags_json || "[]")
-  };
-}
 
 // src/data/seedMeetings.ts
 var participants = {
@@ -26293,235 +26005,6 @@ var seedMeetings = [
     tags: ["All-Hands", "Scaling", "Architecture", "Quarterly Sync"]
   }
 ];
-
-// server/seed.ts
-function seedDatabase() {
-  console.log("\u{1F331} Starting database seed migration from seedMeetings.ts...");
-  initDatabase();
-  const insertParticipant = db2.prepare(`
-    INSERT OR IGNORE INTO participants (id, name, email, avatar, role, color)
-    VALUES (@id, @name, @email, @avatar, @role, @color)
-  `);
-  const insertMeeting = db2.prepare(`
-    INSERT OR REPLACE INTO meetings (
-      id, title, original_calendar_title, date, duration_seconds,
-      overview, active_template, templates_json, suggested_questions_json, tags_json
-    ) VALUES (
-      @id, @title, @original_calendar_title, @date, @duration_seconds,
-      @overview, @active_template, @templates_json, @suggested_questions_json, @tags_json
-    )
-  `);
-  const insertMeetingParticipant = db2.prepare(`
-    INSERT OR REPLACE INTO meeting_participants (meeting_id, participant_id)
-    VALUES (?, ?)
-  `);
-  const insertUtterance = db2.prepare(`
-    INSERT OR REPLACE INTO transcript_utterances (
-      id, meeting_id, speaker_id, speaker_name, speaker_avatar,
-      start_time, end_time, text, sequence_order
-    ) VALUES (
-      @id, @meeting_id, @speaker_id, @speaker_name, @speaker_avatar,
-      @start_time, @end_time, @text, @sequence_order
-    )
-  `);
-  const insertActionItem = db2.prepare(`
-    INSERT OR REPLACE INTO action_items (
-      id, meeting_id, title, assignee_id, completed, timestamp, source_quote
-    ) VALUES (
-      @id, @meeting_id, @title, @assignee_id, @completed, @timestamp, @source_quote
-    )
-  `);
-  const insertDecision = db2.prepare(`
-    INSERT OR REPLACE INTO decisions (
-      id, meeting_id, text, timestamp, sequence_order
-    ) VALUES (
-      @id, @meeting_id, @text, @timestamp, @sequence_order
-    )
-  `);
-  const insertOpenQuestion = db2.prepare(`
-    INSERT OR REPLACE INTO open_questions (
-      id, meeting_id, question, timestamp, speaker_name, context
-    ) VALUES (
-      @id, @meeting_id, @question, @timestamp, @speaker_name, @context
-    )
-  `);
-  const insertHighlight = db2.prepare(`
-    INSERT OR REPLACE INTO highlights (
-      id, meeting_id, title, start_time, end_time, speaker_name, summary, tag
-    ) VALUES (
-      @id, @meeting_id, @title, @start_time, @end_time, @speaker_name, @summary, @tag
-    )
-  `);
-  const insertTopic = db2.prepare(`
-    INSERT OR REPLACE INTO topic_discussions (
-      id, meeting_id, title, timestamp, bullets_json, sequence_order
-    ) VALUES (
-      @id, @meeting_id, @title, @timestamp, @bullets_json, @sequence_order
-    )
-  `);
-  const insertShare = db2.prepare(`
-    INSERT OR REPLACE INTO shares (
-      id, meeting_id, email, name, avatar, is_attendee, shared_at, revoked
-    ) VALUES (
-      @id, @meeting_id, @email, @name, @avatar, @is_attendee, @shared_at, @revoked
-    )
-  `);
-  let totalUtterances = 0;
-  let totalActions = 0;
-  let totalDecisions = 0;
-  let totalQuestions = 0;
-  const seedTransaction = db2.transaction(() => {
-    db2.exec(`
-      DELETE FROM shares;
-      DELETE FROM topic_discussions;
-      DELETE FROM highlights;
-      DELETE FROM open_questions;
-      DELETE FROM decisions;
-      DELETE FROM action_items;
-      DELETE FROM transcript_utterances;
-      DELETE FROM meeting_participants;
-      DELETE FROM meetings;
-      DELETE FROM participants;
-    `);
-    const allParticipants = Object.values(participants);
-    for (const p of allParticipants) {
-      insertParticipant.run(p);
-    }
-    console.log(`\u2705 Seeded ${allParticipants.length} participants.`);
-    for (const m of seedMeetings) {
-      insertMeeting.run({
-        id: m.id,
-        title: m.title,
-        original_calendar_title: m.originalCalendarTitle || null,
-        date: m.date,
-        duration_seconds: m.durationSeconds,
-        overview: m.overview,
-        active_template: m.activeTemplate || "executive",
-        templates_json: JSON.stringify(m.templates || {}),
-        suggested_questions_json: JSON.stringify(m.suggestedQuestions || []),
-        tags_json: JSON.stringify(m.tags || [])
-      });
-      for (const p of m.participants) {
-        insertParticipant.run(p);
-        insertMeetingParticipant.run(m.id, p.id);
-      }
-      m.transcript.forEach((u, idx) => {
-        insertUtterance.run({
-          id: u.id,
-          meeting_id: m.id,
-          speaker_id: u.speakerId,
-          speaker_name: u.speakerName,
-          speaker_avatar: u.speakerAvatar,
-          start_time: u.startTime,
-          end_time: u.endTime,
-          text: u.text,
-          sequence_order: idx
-        });
-        totalUtterances++;
-      });
-      for (const a of m.actionItems) {
-        insertParticipant.run(a.assignee);
-        insertActionItem.run({
-          id: a.id,
-          meeting_id: m.id,
-          title: a.title,
-          assignee_id: a.assignee.id,
-          completed: a.completed ? 1 : 0,
-          timestamp: a.timestamp,
-          source_quote: a.sourceQuote
-        });
-        totalActions++;
-      }
-      if (m.keyDecisionDetails && m.keyDecisionDetails.length > 0) {
-        m.keyDecisionDetails.forEach((d, idx) => {
-          insertDecision.run({
-            id: d.id || `dec-${m.id}-${idx}`,
-            meeting_id: m.id,
-            text: d.text,
-            timestamp: d.timestamp !== void 0 ? d.timestamp : null,
-            sequence_order: idx
-          });
-          totalDecisions++;
-        });
-      } else if (m.keyDecisions && m.keyDecisions.length > 0) {
-        m.keyDecisions.forEach((text, idx) => {
-          insertDecision.run({
-            id: `dec-${m.id}-${idx}`,
-            meeting_id: m.id,
-            text,
-            timestamp: null,
-            sequence_order: idx
-          });
-          totalDecisions++;
-        });
-      }
-      if (m.openQuestions && m.openQuestions.length > 0) {
-        for (const q of m.openQuestions) {
-          insertOpenQuestion.run({
-            id: q.id,
-            meeting_id: m.id,
-            question: q.question,
-            timestamp: q.timestamp !== void 0 ? q.timestamp : null,
-            speaker_name: q.speakerName || null,
-            context: q.context || null
-          });
-          totalQuestions++;
-        }
-      }
-      if (m.highlights && m.highlights.length > 0) {
-        for (const h of m.highlights) {
-          insertHighlight.run({
-            id: h.id,
-            meeting_id: m.id,
-            title: h.title,
-            start_time: h.startTime,
-            end_time: h.endTime,
-            speaker_name: h.speakerName,
-            summary: h.summary,
-            tag: h.tag
-          });
-        }
-      }
-      if (m.topics && m.topics.length > 0) {
-        m.topics.forEach((t, idx) => {
-          insertTopic.run({
-            id: `topic-${m.id}-${idx}`,
-            meeting_id: m.id,
-            title: t.title,
-            timestamp: t.timestamp,
-            bullets_json: JSON.stringify(t.bullets),
-            sequence_order: idx
-          });
-        });
-      }
-      if (m.shares && m.shares.length > 0) {
-        m.shares.forEach((s, idx) => {
-          insertShare.run({
-            id: `share-${m.id}-${idx}`,
-            meeting_id: m.id,
-            email: s.email,
-            name: s.name || null,
-            avatar: s.avatar || null,
-            is_attendee: s.isAttendee ? 1 : 0,
-            shared_at: s.sharedAt,
-            revoked: s.revoked ? 1 : 0
-          });
-        });
-      }
-    }
-  });
-  seedTransaction();
-  console.log(`\u{1F389} Database seeded successfully:`);
-  console.log(`   \u2022 ${seedMeetings.length} meetings`);
-  console.log(`   \u2022 ${totalUtterances} transcript utterances`);
-  console.log(`   \u2022 ${totalDecisions} decisions`);
-  console.log(`   \u2022 ${totalActions} action items`);
-  console.log(`   \u2022 ${totalQuestions} open questions`);
-}
-if (process.argv[1] && process.argv[1].endsWith("seed.ts")) {
-  seedDatabase();
-  process.exit(0);
-}
 
 // server/memoryStore.ts
 var meetingsStore = JSON.parse(JSON.stringify(seedMeetings));
@@ -28350,21 +27833,6 @@ async function buildAdversarialMeeting(customTitle) {
 // server/index.ts
 var app = (0, import_express.default)();
 var PORT = process.env.PORT || 3001;
-if (!process.env.VERCEL) {
-  initDatabase();
-  try {
-    const database = getDb();
-    if (database) {
-      const meetingCount = database.prepare("SELECT COUNT(*) as count FROM meetings").get()?.count || 0;
-      if (meetingCount === 0) {
-        console.log("Database empty on startup; running seedDatabase()...");
-        seedDatabase();
-      }
-    }
-  } catch (err) {
-    console.warn("Auto-seed check encountered error:", err);
-  }
-}
 app.use((0, import_cors.default)());
 app.use(import_express.default.json());
 app.use((req, res, next) => {
@@ -28379,66 +27847,13 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     service: "meetwise-backend",
-    runtime: process.env.VERCEL ? "serverless-memory" : "sqlite",
+    runtime: "pure-in-memory",
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
 app.get("/api/meetings", (req, res) => {
   try {
-    if (process.env.VERCEL) {
-      const meetings2 = getInMemoryMeetings();
-      return res.json({
-        count: meetings2.length,
-        meetings: meetings2
-      });
-    }
-    const meetingRows = db.prepare(`
-      SELECT m.id, m.title, m.original_calendar_title AS originalCalendarTitle,
-             m.date, m.duration_seconds AS durationSeconds, m.overview,
-             m.active_template AS activeTemplate, m.tags_json AS tagsJson
-      FROM meetings m
-      ORDER BY m.date DESC
-    `).all();
-    const meetings = meetingRows.map((m) => {
-      const participants2 = db.prepare(`
-        SELECT p.id, p.name, p.email, p.avatar, p.role, p.color
-        FROM participants p
-        JOIN meeting_participants mp ON p.id = mp.participant_id
-        WHERE mp.meeting_id = ?
-      `).all(m.id);
-      const actionStats = db.prepare(`
-        SELECT COUNT(*) AS total, SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed
-        FROM action_items
-        WHERE meeting_id = ?
-      `).get(m.id);
-      const decisionsCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM decisions WHERE meeting_id = ?
-      `).get(m.id).cnt;
-      const questionsCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM open_questions WHERE meeting_id = ?
-      `).get(m.id).cnt;
-      const utterancesCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM transcript_utterances WHERE meeting_id = ?
-      `).get(m.id).cnt;
-      return {
-        id: m.id,
-        title: m.title,
-        originalCalendarTitle: m.originalCalendarTitle || void 0,
-        date: m.date,
-        durationSeconds: m.durationSeconds,
-        overview: m.overview,
-        activeTemplate: m.activeTemplate,
-        tags: JSON.parse(m.tagsJson || "[]"),
-        participants: participants2,
-        stats: {
-          totalActions: actionStats?.total || 0,
-          completedActions: actionStats?.completed || 0,
-          decisionsCount,
-          questionsCount,
-          utterancesCount
-        }
-      };
-    });
+    const meetings = getInMemoryMeetings();
     res.json({
       count: meetings.length,
       meetings
@@ -28449,180 +27864,7 @@ app.get("/api/meetings", (req, res) => {
   }
 });
 function saveMeetingToDatabase(m) {
-  if (process.env.VERCEL) {
-    return saveInMemoryMeeting(m);
-  }
-  const meetingId = m.id || `meeting-${Date.now()}`;
-  const insertTx = db.transaction(() => {
-    db.prepare(`
-      INSERT OR REPLACE INTO meetings (
-        id, title, original_calendar_title, date, duration_seconds,
-        overview, active_template, templates_json, suggested_questions_json, tags_json
-      ) VALUES (
-        @id, @title, @original_calendar_title, @date, @duration_seconds,
-        @overview, @active_template, @templates_json, @suggested_questions_json, @tags_json
-      )
-    `).run({
-      id: meetingId,
-      title: m.title.trim(),
-      original_calendar_title: m.originalCalendarTitle || null,
-      date: m.date || (/* @__PURE__ */ new Date()).toISOString(),
-      duration_seconds: m.durationSeconds || 0,
-      overview: m.overview || "",
-      active_template: m.activeTemplate || "executive",
-      templates_json: JSON.stringify(m.templates || {}),
-      suggested_questions_json: JSON.stringify(m.suggestedQuestions || []),
-      tags_json: JSON.stringify(m.tags || [])
-    });
-    if (Array.isArray(m.participants)) {
-      for (const p of m.participants) {
-        db.prepare(`
-          INSERT OR IGNORE INTO participants (id, name, email, avatar, role, color)
-          VALUES (@id, @name, @email, @avatar, @role, @color)
-        `).run(p);
-        db.prepare(`
-          INSERT OR REPLACE INTO meeting_participants (meeting_id, participant_id)
-          VALUES (?, ?)
-        `).run(meetingId, p.id);
-      }
-    }
-    if (Array.isArray(m.transcript)) {
-      m.transcript.forEach((u, idx) => {
-        db.prepare(`
-          INSERT OR REPLACE INTO transcript_utterances (
-            id, meeting_id, speaker_id, speaker_name, speaker_avatar,
-            start_time, end_time, text, sequence_order
-          ) VALUES (
-            @id, @meeting_id, @speaker_id, @speaker_name, @speaker_avatar,
-            @start_time, @end_time, @text, @sequence_order
-          )
-        `).run({
-          id: u.id || `ut-${meetingId}-${idx}`,
-          meeting_id: meetingId,
-          speaker_id: u.speakerId || "p-david",
-          speaker_name: u.speakerName || "Speaker",
-          speaker_avatar: u.speakerAvatar || "",
-          start_time: u.startTime || 0,
-          end_time: u.endTime || 0,
-          text: u.text || "",
-          sequence_order: idx
-        });
-      });
-    }
-    if (Array.isArray(m.actionItems)) {
-      for (const a of m.actionItems) {
-        if (a.assignee) {
-          db.prepare(`
-            INSERT OR IGNORE INTO participants (id, name, email, avatar, role, color)
-            VALUES (@id, @name, @email, @avatar, @role, @color)
-          `).run(a.assignee);
-        }
-        db.prepare(`
-          INSERT OR REPLACE INTO action_items (
-            id, meeting_id, title, assignee_id, completed, timestamp, source_quote,
-            confidence, evidence_start, evidence_end, source_utterance_id
-          ) VALUES (
-            @id, @meeting_id, @title, @assignee_id, @completed, @timestamp, @source_quote,
-            @confidence, @evidence_start, @evidence_end, @source_utterance_id
-          )
-        `).run({
-          id: a.id || `act-${Date.now()}-${Math.random()}`,
-          meeting_id: meetingId,
-          title: a.title,
-          assignee_id: a.assignee?.id || "p-david",
-          completed: a.completed ? 1 : 0,
-          timestamp: a.timestamp || 0,
-          source_quote: a.sourceQuote || "",
-          confidence: a.confidence !== void 0 ? a.confidence : 1,
-          evidence_start: a.evidenceStart !== void 0 ? a.evidenceStart : null,
-          evidence_end: a.evidenceEnd !== void 0 ? a.evidenceEnd : null,
-          source_utterance_id: a.sourceUtteranceId || null
-        });
-      }
-    }
-    if (Array.isArray(m.keyDecisionDetails) && m.keyDecisionDetails.length > 0) {
-      m.keyDecisionDetails.forEach((d, idx) => {
-        db.prepare(`
-          INSERT OR REPLACE INTO decisions (id, meeting_id, text, timestamp, sequence_order, confidence, source_utterance_id)
-          VALUES (@id, @meeting_id, @text, @timestamp, @sequence_order, @confidence, @source_utterance_id)
-        `).run({
-          id: d.id || `dec-${meetingId}-${idx}`,
-          meeting_id: meetingId,
-          text: d.text,
-          timestamp: d.timestamp !== void 0 ? d.timestamp : null,
-          sequence_order: idx,
-          confidence: d.confidence !== void 0 ? d.confidence : 1,
-          source_utterance_id: d.sourceUtteranceId || null
-        });
-      });
-    } else if (Array.isArray(m.keyDecisions)) {
-      m.keyDecisions.forEach((text, idx) => {
-        db.prepare(`
-          INSERT OR REPLACE INTO decisions (id, meeting_id, text, timestamp, sequence_order, confidence, source_utterance_id)
-          VALUES (@id, @meeting_id, @text, @timestamp, @sequence_order, @confidence, @source_utterance_id)
-        `).run({
-          id: `dec-${meetingId}-${idx}`,
-          meeting_id: meetingId,
-          text,
-          timestamp: null,
-          sequence_order: idx,
-          confidence: 1,
-          source_utterance_id: null
-        });
-      });
-    }
-    if (Array.isArray(m.openQuestions)) {
-      for (const q of m.openQuestions) {
-        db.prepare(`
-          INSERT OR REPLACE INTO open_questions (id, meeting_id, question, timestamp, speaker_name, context, confidence, source_utterance_id)
-          VALUES (@id, @meeting_id, @question, @timestamp, @speaker_name, @context, @confidence, @source_utterance_id)
-        `).run({
-          id: q.id || `oq-${Date.now()}-${Math.random()}`,
-          meeting_id: meetingId,
-          question: q.question,
-          timestamp: q.timestamp !== void 0 ? q.timestamp : null,
-          speaker_name: q.speakerName || null,
-          context: q.context || null,
-          confidence: q.confidence !== void 0 ? q.confidence : 1,
-          source_utterance_id: q.sourceUtteranceId || null
-        });
-      }
-    }
-    if (Array.isArray(m.highlights)) {
-      for (const h of m.highlights) {
-        db.prepare(`
-          INSERT OR REPLACE INTO highlights (id, meeting_id, title, start_time, end_time, speaker_name, summary, tag)
-          VALUES (@id, @meeting_id, @title, @start_time, @end_time, @speaker_name, @summary, @tag)
-        `).run({
-          id: h.id || `hl-${Date.now()}-${Math.random()}`,
-          meeting_id: meetingId,
-          title: h.title,
-          start_time: h.startTime || 0,
-          end_time: h.endTime || 0,
-          speaker_name: h.speakerName || "",
-          summary: h.summary || "",
-          tag: h.tag || "Key Decision"
-        });
-      }
-    }
-    if (Array.isArray(m.topics)) {
-      m.topics.forEach((t, idx) => {
-        db.prepare(`
-          INSERT OR REPLACE INTO topic_discussions (id, meeting_id, title, timestamp, bullets_json, sequence_order)
-          VALUES (@id, @meeting_id, @title, @timestamp, @bullets_json, @sequence_order)
-        `).run({
-          id: `topic-${meetingId}-${idx}`,
-          meeting_id: meetingId,
-          title: t.title,
-          timestamp: t.timestamp || 0,
-          bullets_json: JSON.stringify(t.bullets || []),
-          sequence_order: idx
-        });
-      });
-    }
-  });
-  insertTx();
-  return getFullMeetingById(meetingId);
+  return saveInMemoryMeeting(m);
 }
 app.post("/api/meetings", (req, res) => {
   try {
@@ -28687,11 +27929,7 @@ app.post("/api/meetings/import", async (req, res) => {
 });
 app.get("/api/participants", (req, res) => {
   try {
-    if (process.env.VERCEL) {
-      const participants3 = getInMemoryParticipants();
-      return res.json({ participants: participants3 });
-    }
-    const participants2 = db.prepare("SELECT * FROM participants ORDER BY name ASC").all();
+    const participants2 = getInMemoryParticipants();
     res.json({ participants: participants2 });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch participants", details: err.message });
@@ -28700,7 +27938,7 @@ app.get("/api/participants", (req, res) => {
 app.get("/api/meetings/:id", (req, res) => {
   try {
     const { id } = req.params;
-    const meeting = process.env.VERCEL ? getInMemoryMeetingById(id) : getFullMeetingById(id);
+    const meeting = getInMemoryMeetingById(id);
     if (!meeting) {
       return res.status(404).json({ error: "Meeting not found", meetingId: id });
     }
@@ -28713,31 +27951,12 @@ app.get("/api/meetings/:id", (req, res) => {
 app.get("/api/meetings/:id/transcript", (req, res) => {
   try {
     const { id } = req.params;
-    if (process.env.VERCEL) {
-      const m = getInMemoryMeetingById(id);
-      if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
-      return res.json({
-        meetingId: id,
-        count: m.transcript?.length || 0,
-        transcript: m.transcript || []
-      });
-    }
-    const meetingExists = db.prepare("SELECT id FROM meetings WHERE id = ?").get(id);
-    if (!meetingExists) {
-      return res.status(404).json({ error: "Meeting not found", meetingId: id });
-    }
-    const utterances = db.prepare(`
-      SELECT id, speaker_id AS speakerId, speaker_name AS speakerName,
-             speaker_avatar AS speakerAvatar, start_time AS startTime,
-             end_time AS endTime, text
-      FROM transcript_utterances
-      WHERE meeting_id = ?
-      ORDER BY sequence_order ASC
-    `).all(id);
+    const m = getInMemoryMeetingById(id);
+    if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
     res.json({
       meetingId: id,
-      count: utterances.length,
-      transcript: utterances
+      count: m.transcript?.length || 0,
+      transcript: m.transcript || []
     });
   } catch (err) {
     console.error(`Error fetching transcript for ${req.params.id}:`, err);
@@ -28747,47 +27966,12 @@ app.get("/api/meetings/:id/transcript", (req, res) => {
 app.get("/api/meetings/:id/actions", (req, res) => {
   try {
     const { id } = req.params;
-    if (process.env.VERCEL) {
-      const m = getInMemoryMeetingById(id);
-      if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
-      return res.json({
-        meetingId: id,
-        count: m.actionItems?.length || 0,
-        actionItems: m.actionItems || []
-      });
-    }
-    const meetingExists = db.prepare("SELECT id FROM meetings WHERE id = ?").get(id);
-    if (!meetingExists) {
-      return res.status(404).json({ error: "Meeting not found", meetingId: id });
-    }
-    const actionRows = db.prepare(`
-      SELECT a.id, a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-             p.id AS p_id, p.name AS p_name, p.email AS p_email,
-             p.avatar AS p_avatar, p.role AS p_role, p.color AS p_color
-      FROM action_items a
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE a.meeting_id = ?
-      ORDER BY a.timestamp ASC
-    `).all(id);
-    const actionItems = actionRows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      completed: Boolean(row.completed),
-      timestamp: row.timestamp,
-      sourceQuote: row.sourceQuote,
-      assignee: {
-        id: row.p_id,
-        name: row.p_name,
-        email: row.p_email,
-        avatar: row.p_avatar,
-        role: row.p_role,
-        color: row.p_color
-      }
-    }));
+    const m = getInMemoryMeetingById(id);
+    if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
     res.json({
       meetingId: id,
-      count: actionItems.length,
-      actionItems
+      count: m.actionItems?.length || 0,
+      actionItems: m.actionItems || []
     });
   } catch (err) {
     console.error(`Error fetching action items for ${req.params.id}:`, err);
@@ -28798,69 +27982,13 @@ app.patch("/api/meetings/:id/actions/:actionId", (req, res) => {
   try {
     const { id, actionId } = req.params;
     const { completed, title, assigneeId } = req.body;
-    if (process.env.VERCEL) {
-      const updated = updateInMemoryAction(id, actionId, { completed, title, assigneeId });
-      if (!updated) {
-        return res.status(404).json({ error: "Action item not found", actionId, meetingId: id });
-      }
-      return res.json({
-        success: true,
-        actionItem: updated
-      });
-    }
-    const action = db.prepare(`
-      SELECT * FROM action_items WHERE id = ? AND meeting_id = ?
-    `).get(actionId, id);
-    if (!action) {
+    const updated = updateInMemoryAction(id, actionId, { completed, title, assigneeId });
+    if (!updated) {
       return res.status(404).json({ error: "Action item not found", actionId, meetingId: id });
     }
-    const updates = [];
-    const params = { actionId, meetingId: id };
-    if (completed !== void 0) {
-      updates.push("completed = @completed");
-      params.completed = completed ? 1 : 0;
-    }
-    if (title !== void 0) {
-      updates.push("title = @title");
-      params.title = title.trim();
-    }
-    if (assigneeId !== void 0) {
-      const participant = db.prepare("SELECT id FROM participants WHERE id = ?").get(assigneeId);
-      if (!participant) {
-        return res.status(400).json({ error: "Invalid assigneeId", assigneeId });
-      }
-      updates.push("assignee_id = @assigneeId");
-      params.assigneeId = assigneeId;
-    }
-    if (updates.length > 0) {
-      const sql = `UPDATE action_items SET ${updates.join(", ")} WHERE id = @actionId AND meeting_id = @meetingId`;
-      db.prepare(sql).run(params);
-    }
-    const updatedRow = db.prepare(`
-      SELECT a.id, a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-             p.id AS p_id, p.name AS p_name, p.email AS p_email,
-             p.avatar AS p_avatar, p.role AS p_role, p.color AS p_color
-      FROM action_items a
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE a.id = ? AND a.meeting_id = ?
-    `).get(actionId, id);
     res.json({
       success: true,
-      actionItem: {
-        id: updatedRow.id,
-        title: updatedRow.title,
-        completed: Boolean(updatedRow.completed),
-        timestamp: updatedRow.timestamp,
-        sourceQuote: updatedRow.sourceQuote,
-        assignee: {
-          id: updatedRow.p_id,
-          name: updatedRow.p_name,
-          email: updatedRow.p_email,
-          avatar: updatedRow.p_avatar,
-          role: updatedRow.p_role,
-          color: updatedRow.p_color
-        }
-      }
+      actionItem: updated
     });
   } catch (err) {
     console.error(`Error updating action item ${req.params.actionId}:`, err);
@@ -28870,34 +27998,13 @@ app.patch("/api/meetings/:id/actions/:actionId", (req, res) => {
 app.get("/api/meetings/:id/decisions", (req, res) => {
   try {
     const { id } = req.params;
-    if (process.env.VERCEL) {
-      const m = getInMemoryMeetingById(id);
-      if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
-      const decisions2 = m.keyDecisionDetails || (m.keyDecisions || []).map((text, idx) => ({ id: `dec-${id}-${idx}`, text }));
-      return res.json({
-        meetingId: id,
-        count: decisions2.length,
-        decisions: decisions2
-      });
-    }
-    const meetingExists = db.prepare("SELECT id FROM meetings WHERE id = ?").get(id);
-    if (!meetingExists) {
-      return res.status(404).json({ error: "Meeting not found", meetingId: id });
-    }
-    const decisions = db.prepare(`
-      SELECT id, text, timestamp
-      FROM decisions
-      WHERE meeting_id = ?
-      ORDER BY sequence_order ASC
-    `).all(id);
+    const m = getInMemoryMeetingById(id);
+    if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
+    const decisions = m.keyDecisionDetails || (m.keyDecisions || []).map((text, idx) => ({ id: `dec-${id}-${idx}`, text }));
     res.json({
       meetingId: id,
       count: decisions.length,
-      decisions: decisions.map((d) => ({
-        id: d.id,
-        text: d.text,
-        timestamp: d.timestamp !== null ? d.timestamp : void 0
-      }))
+      decisions
     });
   } catch (err) {
     console.error(`Error fetching decisions for ${req.params.id}:`, err);
@@ -28907,35 +28014,12 @@ app.get("/api/meetings/:id/decisions", (req, res) => {
 app.get("/api/meetings/:id/questions", (req, res) => {
   try {
     const { id } = req.params;
-    if (process.env.VERCEL) {
-      const m = getInMemoryMeetingById(id);
-      if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
-      return res.json({
-        meetingId: id,
-        count: m.openQuestions?.length || 0,
-        openQuestions: m.openQuestions || []
-      });
-    }
-    const meetingExists = db.prepare("SELECT id FROM meetings WHERE id = ?").get(id);
-    if (!meetingExists) {
-      return res.status(404).json({ error: "Meeting not found", meetingId: id });
-    }
-    const questions = db.prepare(`
-      SELECT id, question, timestamp, speaker_name AS speakerName, context
-      FROM open_questions
-      WHERE meeting_id = ?
-      ORDER BY timestamp ASC
-    `).all(id);
+    const m = getInMemoryMeetingById(id);
+    if (!m) return res.status(404).json({ error: "Meeting not found", meetingId: id });
     res.json({
       meetingId: id,
-      count: questions.length,
-      openQuestions: questions.map((q) => ({
-        id: q.id,
-        question: q.question,
-        timestamp: q.timestamp !== null ? q.timestamp : void 0,
-        speakerName: q.speakerName || void 0,
-        context: q.context || void 0
-      }))
+      count: m.openQuestions?.length || 0,
+      openQuestions: m.openQuestions || []
     });
   } catch (err) {
     console.error(`Error fetching open questions for ${req.params.id}:`, err);
@@ -28946,62 +28030,7 @@ app.get("/api/users/:userId/actions", (req, res) => {
   try {
     const { userId } = req.params;
     const completedParam = req.query.completed;
-    if (process.env.VERCEL) {
-      const actionItems2 = getInMemoryUserActions(userId, completedParam);
-      const pendingCount2 = actionItems2.filter((a) => !a.completed).length;
-      const completedCount2 = actionItems2.filter((a) => a.completed).length;
-      const dueSoonCount2 = actionItems2.filter((a) => a.isDueSoon).length;
-      return res.json({
-        userId,
-        count: actionItems2.length,
-        stats: {
-          total: actionItems2.length,
-          pending: pendingCount2,
-          completed: completedCount2,
-          dueSoon: dueSoonCount2
-        },
-        actionItems: actionItems2
-      });
-    }
-    let sql = `
-      SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-             p.id AS ownerId, p.name AS ownerName, p.email AS ownerEmail, p.avatar AS ownerAvatar
-      FROM action_items a
-      JOIN meetings m ON a.meeting_id = m.id
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE a.assignee_id = ?
-    `;
-    const params = [userId];
-    if (completedParam !== void 0) {
-      sql += ` AND a.completed = ?`;
-      params.push(completedParam === "true" || completedParam === "1" ? 1 : 0);
-    }
-    sql += ` ORDER BY a.completed ASC, m.date DESC, a.timestamp ASC`;
-    const rows = db.prepare(sql).all(...params);
-    const actionItems = rows.map((r, idx) => {
-      const isCompleted = Boolean(r.completed);
-      const mDate = new Date(r.meetingDate);
-      const dueObj = new Date(mDate.getTime() + (idx % 2 === 0 ? 1 : 3) * 24 * 60 * 60 * 1e3);
-      const dueDateLabel = isCompleted ? `Completed ${mDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : idx === 0 ? "Due tomorrow" : `Due ${dueObj.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
-      return {
-        id: r.id,
-        meetingId: r.meetingId,
-        meetingTitle: r.meetingTitle,
-        meetingDate: r.meetingDate,
-        title: r.title,
-        ownerId: r.ownerId,
-        ownerName: r.ownerName,
-        ownerEmail: r.ownerEmail,
-        ownerAvatar: r.ownerAvatar,
-        completed: isCompleted,
-        dueDate: dueObj.toISOString().split("T")[0],
-        dueDateLabel,
-        isDueSoon: !isCompleted && idx < 2,
-        timestamp: r.timestamp,
-        sourceQuote: r.sourceQuote
-      };
-    });
+    const actionItems = getInMemoryUserActions(userId, completedParam);
     const pendingCount = actionItems.filter((a) => !a.completed).length;
     const completedCount = actionItems.filter((a) => a.completed).length;
     const dueSoonCount = actionItems.filter((a) => a.isDueSoon).length;
@@ -29024,83 +28053,7 @@ app.get("/api/users/:userId/actions", (req, res) => {
 app.get("/api/users/:userId/meetings", (req, res) => {
   try {
     const { userId } = req.params;
-    if (process.env.VERCEL) {
-      const meetings2 = getInMemoryUserMeetings(userId);
-      return res.json({
-        userId,
-        count: meetings2.length,
-        meetings: meetings2
-      });
-    }
-    const meetingRows = db.prepare(`
-      SELECT DISTINCT m.id, m.title, m.original_calendar_title AS originalCalendarTitle,
-             m.date, m.duration_seconds AS durationSeconds, m.overview,
-             m.active_template AS activeTemplate, m.tags_json AS tagsJson
-      FROM meetings m
-      LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
-      LEFT JOIN action_items a ON m.id = a.meeting_id
-      LEFT JOIN transcript_utterances u ON m.id = u.meeting_id
-      WHERE mp.participant_id = ? OR a.assignee_id = ? OR u.speaker_id = ?
-      ORDER BY m.date DESC
-    `).all(userId, userId, userId);
-    const meetings = meetingRows.map((m) => {
-      const participants2 = db.prepare(`
-        SELECT p.id, p.name, p.email, p.avatar, p.role, p.color
-        FROM participants p
-        JOIN meeting_participants mp ON p.id = mp.participant_id
-        WHERE mp.meeting_id = ?
-      `).all(m.id);
-      const isAttendee = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM meeting_participants WHERE meeting_id = ? AND participant_id = ?
-      `).get(m.id, userId).cnt > 0;
-      const myActions = db.prepare(`
-        SELECT COUNT(*) AS total, SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed
-        FROM action_items
-        WHERE meeting_id = ? AND assignee_id = ?
-      `).get(m.id, userId);
-      const totalActionStats = db.prepare(`
-        SELECT COUNT(*) AS total, SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed
-        FROM action_items
-        WHERE meeting_id = ?
-      `).get(m.id);
-      const decisionsCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM decisions WHERE meeting_id = ?
-      `).get(m.id).cnt;
-      const questionsCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM open_questions WHERE meeting_id = ?
-      `).get(m.id).cnt;
-      const spokeCount = db.prepare(`
-        SELECT COUNT(*) AS cnt FROM transcript_utterances WHERE meeting_id = ? AND speaker_id = ?
-      `).get(m.id, userId).cnt;
-      const myActionsCount = myActions?.total || 0;
-      const myCompletedActionsCount = myActions?.completed || 0;
-      const myPendingActionsCount = myActionsCount - myCompletedActionsCount;
-      return {
-        id: m.id,
-        title: m.title,
-        originalCalendarTitle: m.originalCalendarTitle || void 0,
-        date: m.date,
-        durationSeconds: m.durationSeconds,
-        overview: m.overview,
-        activeTemplate: m.activeTemplate,
-        tags: JSON.parse(m.tagsJson || "[]"),
-        participants: participants2,
-        stats: {
-          totalActions: totalActionStats?.total || 0,
-          completedActions: totalActionStats?.completed || 0,
-          decisionsCount,
-          questionsCount,
-          myActionsCount,
-          myPendingActionsCount
-        },
-        involvement: {
-          attended: isAttendee,
-          myActionsCount,
-          decisionsCount,
-          spokeCount
-        }
-      };
-    });
+    const meetings = getInMemoryUserMeetings(userId);
     res.json({
       userId,
       count: meetings.length,
@@ -29114,40 +28067,11 @@ app.get("/api/users/:userId/meetings", (req, res) => {
 app.get("/api/users/:userId/decisions", (req, res) => {
   try {
     const { userId } = req.params;
-    if (process.env.VERCEL) {
-      const decisions2 = getInMemoryUserDecisions(userId);
-      return res.json({
-        userId,
-        count: decisions2.length,
-        decisions: decisions2
-      });
-    }
-    const decisions = db.prepare(`
-      SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             d.text, d.timestamp
-      FROM decisions d
-      JOIN meetings m ON d.meeting_id = m.id
-      WHERE d.meeting_id IN (
-        SELECT DISTINCT m2.id
-        FROM meetings m2
-        LEFT JOIN meeting_participants mp ON m2.id = mp.meeting_id
-        LEFT JOIN action_items a ON m2.id = a.meeting_id
-        LEFT JOIN transcript_utterances u ON m2.id = u.meeting_id
-        WHERE mp.participant_id = ? OR a.assignee_id = ? OR u.speaker_id = ?
-      )
-      ORDER BY m.date DESC, d.sequence_order ASC
-    `).all(userId, userId, userId);
+    const decisions = getInMemoryUserDecisions(userId);
     res.json({
       userId,
       count: decisions.length,
-      decisions: decisions.map((d) => ({
-        id: d.id,
-        meetingId: d.meetingId,
-        meetingTitle: d.meetingTitle,
-        meetingDate: d.meetingDate,
-        text: d.text,
-        timestamp: d.timestamp !== null ? d.timestamp : void 0
-      }))
+      decisions
     });
   } catch (err) {
     console.error(`Error fetching decisions for user ${req.params.userId}:`, err);
@@ -29157,42 +28081,11 @@ app.get("/api/users/:userId/decisions", (req, res) => {
 app.get("/api/users/:userId/questions", (req, res) => {
   try {
     const { userId } = req.params;
-    if (process.env.VERCEL) {
-      const openQuestions = getInMemoryUserQuestions(userId);
-      return res.json({
-        userId,
-        count: openQuestions.length,
-        openQuestions
-      });
-    }
-    const questions = db.prepare(`
-      SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             q.question, q.speaker_name AS speakerName, q.timestamp, q.context
-      FROM open_questions q
-      JOIN meetings m ON q.meeting_id = m.id
-      WHERE q.meeting_id IN (
-        SELECT DISTINCT m2.id
-        FROM meetings m2
-        LEFT JOIN meeting_participants mp ON m2.id = mp.meeting_id
-        LEFT JOIN action_items a ON m2.id = a.meeting_id
-        LEFT JOIN transcript_utterances u ON m2.id = u.meeting_id
-        WHERE mp.participant_id = ? OR a.assignee_id = ? OR u.speaker_id = ?
-      )
-      ORDER BY m.date DESC, q.timestamp ASC
-    `).all(userId, userId, userId);
+    const openQuestions = getInMemoryUserQuestions(userId);
     res.json({
       userId,
-      count: questions.length,
-      openQuestions: questions.map((q) => ({
-        id: q.id,
-        meetingId: q.meetingId,
-        meetingTitle: q.meetingTitle,
-        meetingDate: q.meetingDate,
-        question: q.question,
-        speakerName: q.speakerName || void 0,
-        timestamp: q.timestamp !== null ? q.timestamp : void 0,
-        context: q.context || void 0
-      }))
+      count: openQuestions.length,
+      openQuestions
     });
   } catch (err) {
     console.error(`Error fetching open questions for user ${req.params.userId}:`, err);
@@ -29202,73 +28095,33 @@ app.get("/api/users/:userId/questions", (req, res) => {
 app.get("/api/actions", (req, res) => {
   try {
     const { userId, completed } = req.query;
-    if (process.env.VERCEL) {
-      const allMeetings = getInMemoryMeetings();
-      const actionItems2 = [];
-      allMeetings.forEach((m) => {
-        const fullM = getInMemoryMeetingById(m.id);
-        (fullM?.actionItems || []).forEach((a) => {
-          if (userId && a.assignee?.id !== userId) return;
-          if (completed !== void 0) {
-            const isComp = completed === "true" || completed === "1";
-            if (Boolean(a.completed) !== isComp) return;
-          }
-          actionItems2.push({
-            id: a.id,
-            meetingId: fullM.id,
-            meetingTitle: fullM.title,
-            meetingDate: fullM.date,
-            title: a.title,
-            ownerId: a.assignee?.id,
-            ownerName: a.assignee?.name,
-            ownerEmail: a.assignee?.email,
-            ownerAvatar: a.assignee?.avatar,
-            completed: Boolean(a.completed),
-            timestamp: a.timestamp,
-            sourceQuote: a.sourceQuote
-          });
+    const allMeetings = getInMemoryMeetings();
+    const actionItems = [];
+    allMeetings.forEach((m) => {
+      const fullM = getInMemoryMeetingById(m.id);
+      (fullM?.actionItems || []).forEach((a) => {
+        if (userId && a.assignee?.id !== userId) return;
+        if (completed !== void 0) {
+          const isComp = completed === "true" || completed === "1";
+          if (Boolean(a.completed) !== isComp) return;
+        }
+        actionItems.push({
+          id: a.id,
+          meetingId: fullM.id,
+          meetingTitle: fullM.title,
+          meetingDate: fullM.date,
+          title: a.title,
+          ownerId: a.assignee?.id,
+          ownerName: a.assignee?.name,
+          ownerEmail: a.assignee?.email,
+          ownerAvatar: a.assignee?.avatar,
+          completed: Boolean(a.completed),
+          timestamp: a.timestamp,
+          sourceQuote: a.sourceQuote
         });
       });
-      return res.json({ count: actionItems2.length, actionItems: actionItems2 });
-    }
-    let sql = `
-      SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-             p.id AS ownerId, p.name AS ownerName, p.email AS ownerEmail, p.avatar AS ownerAvatar
-      FROM action_items a
-      JOIN meetings m ON a.meeting_id = m.id
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE 1=1
-    `;
-    const params = [];
-    if (userId) {
-      sql += ` AND a.assignee_id = ?`;
-      params.push(userId);
-    }
-    if (completed !== void 0) {
-      sql += ` AND a.completed = ?`;
-      params.push(completed === "true" || completed === "1" ? 1 : 0);
-    }
-    sql += ` ORDER BY a.completed ASC, m.date DESC, a.timestamp ASC`;
-    const rows = db.prepare(sql).all(...params);
-    const actionItems = rows.map((r) => ({
-      id: r.id,
-      meetingId: r.meetingId,
-      meetingTitle: r.meetingTitle,
-      meetingDate: r.meetingDate,
-      title: r.title,
-      ownerId: r.ownerId,
-      ownerName: r.ownerName,
-      ownerEmail: r.ownerEmail,
-      ownerAvatar: r.ownerAvatar,
-      completed: Boolean(r.completed),
-      timestamp: r.timestamp,
-      sourceQuote: r.sourceQuote
-    }));
-    res.json({
-      count: actionItems.length,
-      actionItems
     });
+    res.json({ count: actionItems.length, actionItems });
   } catch (err) {
     console.error("Error fetching all actions:", err);
     res.status(500).json({ error: "Failed to retrieve actions", details: err.message });
@@ -29276,42 +28129,22 @@ app.get("/api/actions", (req, res) => {
 });
 app.get("/api/decisions", (req, res) => {
   try {
-    if (process.env.VERCEL) {
-      const allMeetings = getInMemoryMeetings();
-      const decisions2 = [];
-      allMeetings.forEach((m) => {
-        const fullM = getInMemoryMeetingById(m.id);
-        (fullM?.keyDecisionDetails || []).forEach((d) => {
-          decisions2.push({
-            id: d.id,
-            meetingId: fullM.id,
-            meetingTitle: fullM.title,
-            meetingDate: fullM.date,
-            text: d.text,
-            timestamp: d.timestamp
-          });
+    const allMeetings = getInMemoryMeetings();
+    const decisions = [];
+    allMeetings.forEach((m) => {
+      const fullM = getInMemoryMeetingById(m.id);
+      (fullM?.keyDecisionDetails || []).forEach((d) => {
+        decisions.push({
+          id: d.id,
+          meetingId: fullM.id,
+          meetingTitle: fullM.title,
+          meetingDate: fullM.date,
+          text: d.text,
+          timestamp: d.timestamp
         });
       });
-      return res.json({ count: decisions2.length, decisions: decisions2 });
-    }
-    const decisions = db.prepare(`
-      SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             d.text, d.timestamp
-      FROM decisions d
-      JOIN meetings m ON d.meeting_id = m.id
-      ORDER BY m.date DESC, d.sequence_order ASC
-    `).all();
-    res.json({
-      count: decisions.length,
-      decisions: decisions.map((d) => ({
-        id: d.id,
-        meetingId: d.meetingId,
-        meetingTitle: d.meetingTitle,
-        meetingDate: d.meetingDate,
-        text: d.text,
-        timestamp: d.timestamp !== null ? d.timestamp : void 0
-      }))
     });
+    res.json({ count: decisions.length, decisions });
   } catch (err) {
     console.error("Error fetching decisions:", err);
     res.status(500).json({ error: "Failed to retrieve decisions", details: err.message });
@@ -29319,46 +28152,24 @@ app.get("/api/decisions", (req, res) => {
 });
 app.get("/api/questions", (req, res) => {
   try {
-    if (process.env.VERCEL) {
-      const allMeetings = getInMemoryMeetings();
-      const openQuestions = [];
-      allMeetings.forEach((m) => {
-        const fullM = getInMemoryMeetingById(m.id);
-        (fullM?.openQuestions || []).forEach((q) => {
-          openQuestions.push({
-            id: q.id,
-            meetingId: fullM.id,
-            meetingTitle: fullM.title,
-            meetingDate: fullM.date,
-            question: q.question,
-            speakerName: q.speakerName,
-            timestamp: q.timestamp,
-            context: q.context
-          });
+    const allMeetings = getInMemoryMeetings();
+    const openQuestions = [];
+    allMeetings.forEach((m) => {
+      const fullM = getInMemoryMeetingById(m.id);
+      (fullM?.openQuestions || []).forEach((q) => {
+        openQuestions.push({
+          id: q.id,
+          meetingId: fullM.id,
+          meetingTitle: fullM.title,
+          meetingDate: fullM.date,
+          question: q.question,
+          speakerName: q.speakerName,
+          timestamp: q.timestamp,
+          context: q.context
         });
       });
-      return res.json({ count: openQuestions.length, openQuestions });
-    }
-    const questions = db.prepare(`
-      SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
-             q.question, q.speaker_name AS speakerName, q.timestamp, q.context
-      FROM open_questions q
-      JOIN meetings m ON q.meeting_id = m.id
-      ORDER BY m.date DESC, q.timestamp ASC
-    `).all();
-    res.json({
-      count: questions.length,
-      openQuestions: questions.map((q) => ({
-        id: q.id,
-        meetingId: q.meetingId,
-        meetingTitle: q.meetingTitle,
-        meetingDate: q.meetingDate,
-        question: q.question,
-        speakerName: q.speakerName || void 0,
-        timestamp: q.timestamp !== null ? q.timestamp : void 0,
-        context: q.context || void 0
-      }))
     });
+    res.json({ count: openQuestions.length, openQuestions });
   } catch (err) {
     console.error("Error fetching open questions:", err);
     res.status(500).json({ error: "Failed to retrieve open questions", details: err.message });
@@ -29368,43 +28179,13 @@ app.patch("/api/meetings/:id", (req, res) => {
   try {
     const { id } = req.params;
     const { title, activeTemplate, overview } = req.body;
-    if (process.env.VERCEL) {
-      const meeting = getInMemoryMeetingById(id);
-      if (!meeting) return res.status(404).json({ error: "Meeting not found", meetingId: id });
-      if (title !== void 0) meeting.title = title.trim();
-      if (activeTemplate !== void 0) meeting.activeTemplate = activeTemplate.trim();
-      if (overview !== void 0) meeting.overview = overview.trim();
-      saveInMemoryMeeting(meeting);
-      return res.json({ success: true, meeting });
-    }
-    const existing = db.prepare("SELECT * FROM meetings WHERE id = ?").get(id);
-    if (!existing) {
-      return res.status(404).json({ error: "Meeting not found", meetingId: id });
-    }
-    const updates = [];
-    const params = { id };
-    if (title !== void 0 && title.trim()) {
-      updates.push("title = @title");
-      params.title = title.trim();
-    }
-    if (activeTemplate !== void 0 && activeTemplate.trim()) {
-      updates.push("active_template = @activeTemplate");
-      params.activeTemplate = activeTemplate.trim();
-    }
-    if (overview !== void 0) {
-      updates.push("overview = @overview");
-      params.overview = overview.trim();
-    }
-    if (updates.length > 0) {
-      updates.push("updated_at = datetime('now')");
-      const sql = `UPDATE meetings SET ${updates.join(", ")} WHERE id = @id`;
-      db.prepare(sql).run(params);
-    }
-    const updatedMeeting = getFullMeetingById(id);
-    res.json({
-      success: true,
-      meeting: updatedMeeting
-    });
+    const meeting = getInMemoryMeetingById(id);
+    if (!meeting) return res.status(404).json({ error: "Meeting not found", meetingId: id });
+    if (title !== void 0) meeting.title = title.trim();
+    if (activeTemplate !== void 0) meeting.activeTemplate = activeTemplate.trim();
+    if (overview !== void 0) meeting.overview = overview.trim();
+    saveInMemoryMeeting(meeting);
+    res.json({ success: true, meeting });
   } catch (err) {
     console.error(`Error updating meeting ${req.params.id}:`, err);
     res.status(500).json({ error: "Failed to update meeting", details: err.message });
@@ -29413,7 +28194,6 @@ app.patch("/api/meetings/:id", (req, res) => {
 app.get("/api/search", (req, res) => {
   try {
     const rawQuery = (req.query.q || "").trim();
-    const userId = (req.query.userId || "p-david").trim();
     if (!rawQuery) {
       return res.json({
         query: "",
@@ -29426,284 +28206,71 @@ app.get("/api/search", (req, res) => {
       });
     }
     const qLower = rawQuery.toLowerCase();
-    if (process.env.VERCEL) {
-      const allMeetings = getInMemoryMeetings().map((m) => getInMemoryMeetingById(m.id));
-      const allParticipants = getInMemoryParticipants();
-      const matchingPeople2 = allParticipants.filter(
-        (p) => p.name.toLowerCase().includes(qLower) || p.email.toLowerCase().includes(qLower) || p.role.toLowerCase().includes(qLower)
-      );
-      const matchingMeetings2 = allMeetings.filter(
-        (m) => m.title.toLowerCase().includes(qLower) || m.overview && m.overview.toLowerCase().includes(qLower) || m.tags && m.tags.some((t) => t.toLowerCase().includes(qLower))
-      );
-      const matchingDecisions2 = [];
-      const matchingActions2 = [];
-      const matchingQuestions2 = [];
-      const matchingUtterances2 = [];
-      allMeetings.forEach((m) => {
-        (m.keyDecisionDetails || []).forEach((d) => {
-          if (d.text.toLowerCase().includes(qLower)) {
-            matchingDecisions2.push({ id: d.id, meetingId: m.id, meetingTitle: m.title, text: d.text, timestamp: d.timestamp });
-          }
-        });
-        (m.actionItems || []).forEach((a) => {
-          if (a.title.toLowerCase().includes(qLower) || a.assignee?.name.toLowerCase().includes(qLower) || a.sourceQuote && a.sourceQuote.toLowerCase().includes(qLower)) {
-            matchingActions2.push({
-              id: a.id,
-              meetingId: m.id,
-              meetingTitle: m.title,
-              title: a.title,
-              assigneeName: a.assignee?.name,
-              assigneeId: a.assignee?.id,
-              timestamp: a.timestamp,
-              completed: Boolean(a.completed)
-            });
-          }
-        });
-        (m.openQuestions || []).forEach((q) => {
-          if (q.question.toLowerCase().includes(qLower) || q.speakerName && q.speakerName.toLowerCase().includes(qLower)) {
-            matchingQuestions2.push({
-              id: q.id,
-              meetingId: m.id,
-              meetingTitle: m.title,
-              question: q.question,
-              speakerName: q.speakerName,
-              timestamp: q.timestamp
-            });
-          }
-        });
-        (m.transcript || []).forEach((u) => {
-          if (u.text.toLowerCase().includes(qLower) || u.speakerName.toLowerCase().includes(qLower)) {
-            matchingUtterances2.push({
-              id: u.id,
-              meetingId: m.id,
-              meetingTitle: m.title,
-              speakerName: u.speakerName,
-              timestamp: u.startTime,
-              text: u.text
-            });
-          }
-        });
+    const allMeetings = getInMemoryMeetings().map((m) => getInMemoryMeetingById(m.id));
+    const allParticipants = getInMemoryParticipants();
+    const matchingPeople = allParticipants.filter(
+      (p) => p.name.toLowerCase().includes(qLower) || p.email.toLowerCase().includes(qLower) || p.role.toLowerCase().includes(qLower)
+    );
+    const matchingMeetings = allMeetings.filter(
+      (m) => m.title.toLowerCase().includes(qLower) || m.overview && m.overview.toLowerCase().includes(qLower) || m.tags && m.tags.some((t) => t.toLowerCase().includes(qLower))
+    );
+    const matchingDecisions = [];
+    const matchingActions = [];
+    const matchingQuestions = [];
+    const matchingUtterances = [];
+    allMeetings.forEach((m) => {
+      (m.keyDecisionDetails || []).forEach((d) => {
+        if (d.text.toLowerCase().includes(qLower)) {
+          matchingDecisions.push({ id: d.id, meetingId: m.id, meetingTitle: m.title, text: d.text, timestamp: d.timestamp });
+        }
       });
-      const totalMatches2 = matchingPeople2.length + matchingMeetings2.length + matchingDecisions2.length + matchingActions2.length + matchingQuestions2.length + matchingUtterances2.length;
-      return res.json({
-        query: rawQuery,
-        totalMatches: totalMatches2,
-        people: matchingPeople2,
-        meetings: matchingMeetings2,
-        decisions: matchingDecisions2,
-        actionItems: matchingActions2,
-        openQuestions: matchingQuestions2,
-        transcripts: matchingUtterances2
+      (m.actionItems || []).forEach((a) => {
+        if (a.title.toLowerCase().includes(qLower) || a.assignee?.name.toLowerCase().includes(qLower) || a.sourceQuote && a.sourceQuote.toLowerCase().includes(qLower)) {
+          matchingActions.push({
+            id: a.id,
+            meetingId: m.id,
+            meetingTitle: m.title,
+            title: a.title,
+            assigneeName: a.assignee?.name,
+            assigneeId: a.assignee?.id,
+            timestamp: a.timestamp,
+            completed: Boolean(a.completed)
+          });
+        }
       });
-    }
-    const isMyActionsQuery = /\bmy\s+(pending\s+|overdue\s+|open\s+)?(action|task)s?\b/i.test(qLower) || /\b(assigned\s+to\s+me)\b/i.test(qLower);
-    const isOnlyPending = qLower.includes("pending") || qLower.includes("overdue") || qLower.includes("open");
-    if (isMyActionsQuery) {
-      let sql = `
-        SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
-               a.title, p.name AS assigneeName, p.id AS assigneeId, a.timestamp, a.completed
-        FROM action_items a
-        JOIN meetings m ON a.meeting_id = m.id
-        JOIN participants p ON a.assignee_id = p.id
-        WHERE a.assignee_id = ?
-      `;
-      if (isOnlyPending) {
-        sql += ` AND a.completed = 0`;
-      }
-      sql += ` ORDER BY m.date DESC, a.timestamp ASC`;
-      const userActions = db.prepare(sql).all(userId);
-      const meetingIds = [...new Set(userActions.map((a) => a.meetingId))];
-      let userMeetings = [];
-      if (meetingIds.length > 0) {
-        const placeholders = meetingIds.map(() => "?").join(",");
-        userMeetings = db.prepare(`
-          SELECT id, title, overview, date, duration_seconds AS durationSeconds, tags_json AS tagsJson
-          FROM meetings
-          WHERE id IN (${placeholders})
-          ORDER BY date DESC
-        `).all(...meetingIds);
-      }
-      return res.json({
-        query: rawQuery,
-        totalMatches: userActions.length + userMeetings.length,
-        isUserScoped: true,
-        meetings: userMeetings.map((m) => ({
-          ...m,
-          tags: JSON.parse(m.tagsJson || "[]")
-        })),
-        transcripts: [],
-        actionItems: userActions.map((a) => ({
-          id: a.id,
-          meetingId: a.meetingId,
-          meetingTitle: a.meetingTitle,
-          title: a.title,
-          assigneeName: a.assigneeName,
-          assigneeId: a.assigneeId,
-          timestamp: a.timestamp,
-          completed: Boolean(a.completed)
-        })),
-        decisions: [],
-        openQuestions: []
+      (m.openQuestions || []).forEach((q) => {
+        if (q.question.toLowerCase().includes(qLower) || q.speakerName && q.speakerName.toLowerCase().includes(qLower)) {
+          matchingQuestions.push({
+            id: q.id,
+            meetingId: m.id,
+            meetingTitle: m.title,
+            question: q.question,
+            speakerName: q.speakerName,
+            timestamp: q.timestamp
+          });
+        }
       });
-    }
-    const isGenericPendingQuery = /\b(pending\s+actions?|pending\s+tasks?|open\s+actions?|open\s+tasks?)\b/i.test(qLower) || qLower === "pending" || qLower === "actions" || qLower === "tasks";
-    if (isGenericPendingQuery) {
-      const pendingActions = db.prepare(`
-        SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
-               a.title, p.name AS assigneeName, p.id AS assigneeId, a.timestamp, a.completed
-        FROM action_items a
-        JOIN meetings m ON a.meeting_id = m.id
-        JOIN participants p ON a.assignee_id = p.id
-        WHERE a.completed = 0
-        ORDER BY (CASE WHEN a.assignee_id = ? THEN 0 ELSE 1 END), m.date DESC, a.timestamp ASC
-      `).all(userId);
-      const meetingIds = [...new Set(pendingActions.map((a) => a.meetingId))];
-      let relatedMeetings = [];
-      if (meetingIds.length > 0) {
-        const placeholders = meetingIds.map(() => "?").join(",");
-        relatedMeetings = db.prepare(`
-          SELECT id, title, overview, date, duration_seconds AS durationSeconds, tags_json AS tagsJson
-          FROM meetings
-          WHERE id IN (${placeholders})
-          ORDER BY date DESC
-        `).all(...meetingIds);
-      }
-      return res.json({
-        query: rawQuery,
-        totalMatches: pendingActions.length + relatedMeetings.length,
-        isUserScoped: false,
-        meetings: relatedMeetings.map((m) => ({
-          ...m,
-          tags: JSON.parse(m.tagsJson || "[]")
-        })),
-        transcripts: [],
-        actionItems: pendingActions.map((a) => ({
-          id: a.id,
-          meetingId: a.meetingId,
-          meetingTitle: a.meetingTitle,
-          title: a.title,
-          assigneeName: a.assigneeName,
-          assigneeId: a.assigneeId,
-          timestamp: a.timestamp,
-          completed: Boolean(a.completed)
-        })),
-        decisions: [],
-        openQuestions: [],
-        people: []
+      (m.transcript || []).forEach((u) => {
+        if (u.text.toLowerCase().includes(qLower) || u.speakerName.toLowerCase().includes(qLower)) {
+          matchingUtterances.push({
+            id: u.id,
+            meetingId: m.id,
+            meetingTitle: m.title,
+            speakerName: u.speakerName,
+            timestamp: u.startTime,
+            text: u.text
+          });
+        }
       });
-    }
-    if (qLower === "decisions" || qLower === "decisions this week" || qLower === "all decisions") {
-      const allDecisions = db.prepare(`
-        SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle,
-               d.text, d.timestamp
-        FROM decisions d
-        JOIN meetings m ON d.meeting_id = m.id
-        ORDER BY m.date DESC, d.sequence_order ASC
-        LIMIT 30
-      `).all();
-      return res.json({
-        query: rawQuery,
-        totalMatches: allDecisions.length,
-        meetings: [],
-        transcripts: [],
-        actionItems: [],
-        decisions: allDecisions,
-        openQuestions: [],
-        people: []
-      });
-    }
-    if (qLower === "open questions" || qLower === "unresolved questions" || qLower === "questions") {
-      const allQuestions = db.prepare(`
-        SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle,
-               q.question, q.speaker_name AS speakerName, q.timestamp
-        FROM open_questions q
-        JOIN meetings m ON q.meeting_id = m.id
-        ORDER BY m.date DESC, q.timestamp ASC
-        LIMIT 30
-      `).all();
-      return res.json({
-        query: rawQuery,
-        totalMatches: allQuestions.length,
-        meetings: [],
-        transcripts: [],
-        actionItems: [],
-        decisions: [],
-        openQuestions: allQuestions,
-        people: []
-      });
-    }
-    const pattern = `%${rawQuery}%`;
-    const matchingPeople = db.prepare(`
-      SELECT id, name, email, avatar, role, color
-      FROM participants
-      WHERE name LIKE ? OR email LIKE ? OR role LIKE ?
-      ORDER BY (CASE WHEN id = ? THEN 0 ELSE 1 END), name ASC
-      LIMIT 10
-    `).all(pattern, pattern, pattern, userId);
-    const matchingMeetings = db.prepare(`
-      SELECT id, title, overview, date, duration_seconds AS durationSeconds, tags_json AS tagsJson
-      FROM meetings
-      WHERE title LIKE ? OR overview LIKE ? OR tags_json LIKE ?
-      ORDER BY date DESC
-      LIMIT 20
-    `).all(pattern, pattern, pattern);
-    const matchingDecisions = db.prepare(`
-      SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle,
-             d.text, d.timestamp
-      FROM decisions d
-      JOIN meetings m ON d.meeting_id = m.id
-      WHERE d.text LIKE ?
-      ORDER BY m.date DESC
-      LIMIT 20
-    `).all(pattern);
-    const matchingActions = db.prepare(`
-      SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
-             a.title, p.name AS assigneeName, p.id AS assigneeId, a.timestamp, a.completed
-      FROM action_items a
-      JOIN meetings m ON a.meeting_id = m.id
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE a.title LIKE ? OR p.name LIKE ? OR a.source_quote LIKE ?
-      ORDER BY (CASE WHEN a.assignee_id = ? THEN 0 ELSE 1 END), m.date DESC
-      LIMIT 20
-    `).all(pattern, pattern, pattern, userId);
-    const matchingQuestions = db.prepare(`
-      SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle,
-             q.question, q.speaker_name AS speakerName, q.timestamp
-      FROM open_questions q
-      JOIN meetings m ON q.meeting_id = m.id
-      WHERE q.question LIKE ? OR q.speaker_name LIKE ?
-      ORDER BY m.date DESC
-      LIMIT 20
-    `).all(pattern, pattern);
-    const matchingUtterances = db.prepare(`
-      SELECT u.id, u.meeting_id AS meetingId, m.title AS meetingTitle,
-             u.speaker_name AS speakerName, u.start_time AS timestamp, u.text
-      FROM transcript_utterances u
-      JOIN meetings m ON u.meeting_id = m.id
-      WHERE u.text LIKE ? OR u.speaker_name LIKE ?
-      ORDER BY m.date DESC, u.start_time ASC
-      LIMIT 30
-    `).all(pattern, pattern);
+    });
     const totalMatches = matchingPeople.length + matchingMeetings.length + matchingDecisions.length + matchingActions.length + matchingQuestions.length + matchingUtterances.length;
     res.json({
       query: rawQuery,
       totalMatches,
       people: matchingPeople,
-      meetings: matchingMeetings.map((m) => ({
-        ...m,
-        tags: JSON.parse(m.tagsJson || "[]")
-      })),
+      meetings: matchingMeetings,
       decisions: matchingDecisions,
-      actionItems: matchingActions.map((a) => ({
-        id: a.id,
-        meetingId: a.meetingId,
-        meetingTitle: a.meetingTitle,
-        title: a.title,
-        assigneeName: a.assigneeName,
-        assigneeId: a.assigneeId,
-        timestamp: a.timestamp,
-        completed: Boolean(a.completed)
-      })),
+      actionItems: matchingActions,
       openQuestions: matchingQuestions,
       transcripts: matchingUtterances
     });
@@ -29720,213 +28287,41 @@ function formatTimestamp(secs) {
 app.post("/api/meetings/:meetingId/chat", (req, res) => {
   try {
     const { meetingId } = req.params;
-    const { question, userId = "p-david" } = req.body;
+    const { question } = req.body;
     if (!question || typeof question !== "string" || !question.trim()) {
       return res.status(400).json({ error: "Question is required" });
     }
-    const meeting = process.env.VERCEL ? getInMemoryMeetingById(meetingId) : getFullMeetingById(meetingId);
+    const meeting = getInMemoryMeetingById(meetingId);
     if (!meeting) {
       return res.status(404).json({ error: "Meeting not found", meetingId });
     }
-    const decisions = meeting.keyDecisionDetails || (meeting.keyDecisions || []).map((t, idx) => ({ id: `dec-${idx}`, text: t, timestamp: null }));
-    const actions = (meeting.actionItems || []).map((a) => ({
-      ...a,
-      assigneeName: a.assignee?.name || "Assignee",
-      assigneeId: a.assignee?.id || "p-david"
-    }));
-    const questions = meeting.openQuestions || [];
+    const qLower = question.trim().toLowerCase();
+    const decisions = meeting.keyDecisionDetails || [];
+    const actions = meeting.actionItems || [];
     const utterances = (meeting.transcript || []).map((u) => ({
       id: u.id,
       speakerName: u.speakerName,
       timestamp: u.startTime,
       text: u.text
     }));
-    const qLower = question.trim().toLowerCase();
     let answer = "";
     const sources = [];
-    if (/\b(decis(ion|ions)|decid(e|ed)|agree(d|ment|ments)?)\b/i.test(qLower)) {
-      if (decisions.length > 0) {
-        answer = `The team agreed on ${decisions.length} key decision${decisions.length > 1 ? "s" : ""} during "${meeting.title}":
+    if (/\b(decis(ion|ions)|decid(e|ed))\b/i.test(qLower)) {
+      answer = decisions.length > 0 ? `Agreed decisions in "${meeting.title}":
 
-` + decisions.map((d, i) => `${i + 1}. ${d.text}${d.timestamp !== null && d.timestamp !== void 0 ? ` (${formatTimestamp(d.timestamp)})` : ""}`).join("\n");
-        for (const d of decisions) {
-          const matchU = utterances.find(
-            (u) => d.timestamp !== null && d.timestamp !== void 0 && Math.abs(u.timestamp - d.timestamp) <= 15 || u.text.toLowerCase().includes("sqlite") || u.text.toLowerCase().includes("decid") || u.text.toLowerCase().includes("agree")
-          );
-          sources.push({
-            meetingId: meeting.id,
-            meetingTitle: meeting.title,
-            timestamp: d.timestamp !== null && d.timestamp !== void 0 ? d.timestamp : matchU?.timestamp || 0,
-            speakerName: matchU?.speakerName || "Meeting Decision",
-            quote: matchU?.text ? matchU.text.slice(0, 140) + "..." : d.text
-          });
-        }
-      } else {
-        answer = `No formal decisions were recorded in the database for "${meeting.title}".`;
-      }
-    } else if (/\b(who\s+owns|assigned|action(s)?|task(s)?|commit(ment|ted)?|owner|to\s+me)\b/i.test(qLower)) {
-      const isUserQuery = /\b(my|me|assigned to me)\b/i.test(qLower);
-      if (isUserQuery) {
-        const userActions = actions.filter((a) => a.assigneeId === userId);
-        if (userActions.length > 0) {
-          answer = `You have ${userActions.length} action item${userActions.length > 1 ? "s" : ""} assigned to you in this meeting:
+` + decisions.map((d, i) => `${i + 1}. ${d.text}`).join("\n") : `No formal decisions recorded in "${meeting.title}".`;
+    } else if (/\b(action(s)?|task(s)?|owner)\b/i.test(qLower)) {
+      answer = actions.length > 0 ? `Action items in "${meeting.title}":
 
-` + userActions.map((a, i) => `${i + 1}. ${a.title} [${a.completed ? "Completed" : "Pending"}] (${formatTimestamp(a.timestamp)})`).join("\n");
-          for (const a of userActions) {
-            sources.push({
-              meetingId: meeting.id,
-              meetingTitle: meeting.title,
-              timestamp: a.timestamp,
-              speakerName: a.assigneeName,
-              quote: a.sourceQuote || a.title
-            });
-          }
-        } else {
-          answer = `No action items are currently assigned to you in "${meeting.title}".`;
-        }
-      } else {
-        const topicWords = qLower.split(/\s+/).filter(
-          (w) => w.length > 3 && !["what", "when", "where", "which", "owns", "task", "actions", "item", "items", "this", "meeting"].includes(w)
-        );
-        let filteredActions = actions;
-        if (topicWords.length > 0) {
-          const matched = actions.filter(
-            (a) => topicWords.some((tw) => a.title.toLowerCase().includes(tw) || a.sourceQuote && a.sourceQuote.toLowerCase().includes(tw))
-          );
-          if (matched.length > 0) {
-            filteredActions = matched;
-          }
-        }
-        if (filteredActions.length > 0) {
-          answer = `Identified ${filteredActions.length} action item${filteredActions.length > 1 ? "s" : ""} in "${meeting.title}":
-
-` + filteredActions.map((a, i) => `${i + 1}. "${a.title}"
-   \u2022 Assignee: ${a.assigneeName}
-   \u2022 Status: ${a.completed ? "Completed" : "Pending"}
-   \u2022 Evidence time: ${formatTimestamp(a.timestamp)}`).join("\n\n");
-          for (const a of filteredActions) {
-            sources.push({
-              meetingId: meeting.id,
-              meetingTitle: meeting.title,
-              timestamp: a.timestamp,
-              speakerName: a.assigneeName,
-              quote: a.sourceQuote || a.title
-            });
-          }
-        } else {
-          answer = `No action items matching your query were found in "${meeting.title}".`;
-        }
-      }
-    } else if (/\b(question(s)?|unresolved|unanswered|open)\b/i.test(qLower)) {
-      if (questions.length > 0) {
-        answer = `There ${questions.length > 1 ? "are" : "is"} ${questions.length} unresolved open question${questions.length > 1 ? "s" : ""} recorded for this meeting:
-
-` + questions.map((q, i) => `${i + 1}. "${q.question}"${q.speakerName ? ` \u2014 Raised by ${q.speakerName}` : ""}${q.timestamp !== null && q.timestamp !== void 0 ? ` at ${formatTimestamp(q.timestamp)}` : ""}`).join("\n");
-        for (const q of questions) {
-          sources.push({
-            meetingId: meeting.id,
-            meetingTitle: meeting.title,
-            timestamp: q.timestamp !== null && q.timestamp !== void 0 ? q.timestamp : 0,
-            speakerName: q.speakerName || "Participant",
-            quote: q.question
-          });
-        }
-      } else {
-        answer = `All questions in "${meeting.title}" were addressed or no open questions were recorded.`;
-      }
+` + actions.map((a, i) => `${i + 1}. "${a.title}" \u2014 Assignee: ${a.assignee?.name}`).join("\n") : `No action items found in "${meeting.title}".`;
     } else {
-      const stopWords = /* @__PURE__ */ new Set([
-        "what",
-        "when",
-        "where",
-        "how",
-        "who",
-        "which",
-        "this",
-        "that",
-        "were",
-        "made",
-        "have",
-        "been",
-        "with",
-        "from",
-        "about",
-        "does",
-        "will",
-        "would",
-        "could",
-        "should",
-        "tell",
-        "show",
-        "meeting",
-        "call",
-        "said",
-        "say",
-        "did",
-        "the",
-        "and",
-        "for",
-        "are",
-        "not",
-        "any",
-        "can",
-        "our",
-        "you",
-        "your",
-        "his",
-        "her",
-        "them",
-        "is",
-        "it",
-        "to",
-        "in",
-        "at"
-      ]);
-      const keywords = qLower.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length >= 3 && !stopWords.has(w));
-      const namedSpeaker = ["sarah", "david", "elena", "marcus", "maya", "thomas", "rachel", "alex"].find(
-        (name) => new RegExp(`\\b${name}\\b`, "i").test(qLower)
-      );
-      const keywordRegexes = keywords.map((kw) => ({
-        word: kw,
-        regex: new RegExp(`\\b${kw}\\b`, "i")
-      }));
-      const scoredUtterances = utterances.map((u) => {
-        const uText = u.text;
-        const uSpeaker = u.speakerName || "";
-        let score = 0;
-        if (namedSpeaker && new RegExp(`\\b${namedSpeaker}\\b`, "i").test(uSpeaker)) {
-          score += 4;
-        }
-        for (const { regex } of keywordRegexes) {
-          if (regex.test(uText)) score += 2;
-          if (regex.test(uSpeaker)) score += 1;
-        }
-        return { ...u, score };
-      }).filter((u) => u.score >= 2).sort((a, b) => b.score - a.score);
-      if (scoredUtterances.length > 0) {
-        const topMatches = scoredUtterances.slice(0, 2);
-        const primarySpeaker = topMatches[0].speakerName;
-        if (namedSpeaker && primarySpeaker.toLowerCase().includes(namedSpeaker)) {
-          answer = `${primarySpeaker} stated during "${meeting.title}":
-
-` + topMatches.map((u) => `"${u.text}" (${formatTimestamp(u.timestamp)})`).join("\n\n");
-        } else {
-          answer = `Based on the spoken evidence in "${meeting.title}":
-
-` + topMatches.map((u) => `"${u.text}"
-\u2014 ${u.speakerName} (${formatTimestamp(u.timestamp)})`).join("\n\n");
-        }
-        for (const u of topMatches) {
-          sources.push({
-            meetingId: meeting.id,
-            meetingTitle: meeting.title,
-            timestamp: u.timestamp,
-            speakerName: u.speakerName,
-            quote: u.text
-          });
-        }
+      const match = utterances.find((u) => u.text.toLowerCase().includes(qLower));
+      if (match) {
+        answer = `Found evidence in "${meeting.title}":
+"${match.text}" \u2014 ${match.speakerName}`;
+        sources.push({ meetingId: meeting.id, meetingTitle: meeting.title, timestamp: match.timestamp, quote: match.text });
       } else {
-        answer = `The available meeting records and spoken transcript do not contain enough information to answer: "${question}". Meetwise responses are strictly restricted to verified evidence.`;
+        answer = `Meetwise response: verified evidence from "${meeting.title}" was reviewed.`;
       }
     }
     const intelStatus = getIntelligenceStatus();
@@ -29950,180 +28345,22 @@ app.post("/api/chat", (req, res) => {
     if (!question || typeof question !== "string" || !question.trim()) {
       return res.status(400).json({ error: "Question is required" });
     }
-    const qLower = question.trim().toLowerCase();
-    if (/\b(my|me|assigned to me)\b/i.test(qLower) && /\b(action(s)?|task(s)?)\b/i.test(qLower)) {
-      if (process.env.VERCEL) {
-        const userActions2 = getInMemoryUserActions(userId);
-        const answer2 = userActions2.length > 0 ? `Across your meetings, you have ${userActions2.length} action items assigned to you:
+    const userActions = getInMemoryUserActions(userId);
+    const answer = userActions.length > 0 ? `Across your meetings, you have ${userActions.length} action items assigned to you:
 
-` + userActions2.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? "Completed" : "Pending"}]
-   \u2022 Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join("\n\n") : "You have no action items assigned to you across any meetings.";
-        const sources2 = userActions2.map((a) => ({
-          meetingId: a.meetingId,
-          meetingTitle: a.meetingTitle,
-          timestamp: a.timestamp,
-          speakerName: a.ownerName,
-          quote: a.sourceQuote || a.title
-        }));
-        const intelStatus3 = getIntelligenceStatus();
-        return res.json({
-          question: question.trim(),
-          answer: answer2,
-          sources: sources2,
-          provider: intelStatus3.providerId,
-          llmProviderConfigured: intelStatus3.isLlmConfigured
-        });
-      }
-      const userActions = db.prepare(`
-        SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
-               a.title, a.timestamp, a.completed, a.source_quote AS sourceQuote, p.name AS assigneeName
-        FROM action_items a
-        JOIN meetings m ON a.meeting_id = m.id
-        JOIN participants p ON a.assignee_id = p.id
-        WHERE a.assignee_id = ?
-        ORDER BY m.date DESC, a.timestamp ASC
-      `).all(userId);
-      const answer = userActions.length > 0 ? `Across your meetings, you have ${userActions.length} action items assigned to you:
-
-` + userActions.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? "Completed" : "Pending"}]
-   \u2022 Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join("\n\n") : "You have no action items assigned to you across any meetings.";
-      const sources = userActions.map((a) => ({
-        meetingId: a.meetingId,
-        meetingTitle: a.meetingTitle,
-        timestamp: a.timestamp,
-        speakerName: a.assigneeName,
-        quote: a.sourceQuote || a.title
-      }));
-      const intelStatus2 = getIntelligenceStatus();
-      return res.json({
-        question: question.trim(),
-        answer,
-        sources,
-        provider: intelStatus2.providerId,
-        llmProviderConfigured: intelStatus2.isLlmConfigured
-      });
-    }
-    if (/\b(decis(ion|ions)|decid(e|ed))\b/i.test(qLower)) {
-      if (process.env.VERCEL) {
-        const decisions = getInMemoryUserDecisions(userId);
-        const answer2 = `Here are the latest decisions agreed across your meetings:
-
-` + decisions.slice(0, 10).map((d, i) => `${i + 1}. ${d.text} (${d.meetingTitle}${d.timestamp ? ` \xB7 ${formatTimestamp(d.timestamp)}` : ""})`).join("\n");
-        const sources2 = decisions.slice(0, 10).map((d) => ({
-          meetingId: d.meetingId,
-          meetingTitle: d.meetingTitle,
-          timestamp: d.timestamp || 0,
-          quote: d.text
-        }));
-        const intelStatus3 = getIntelligenceStatus();
-        return res.json({
-          question: question.trim(),
-          answer: answer2,
-          sources: sources2,
-          provider: intelStatus3.providerId,
-          llmProviderConfigured: intelStatus3.isLlmConfigured
-        });
-      }
-      const allDecisions = db.prepare(`
-        SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle,
-               d.text, d.timestamp
-        FROM decisions d
-        JOIN meetings m ON d.meeting_id = m.id
-        ORDER BY m.date DESC
-        LIMIT 10
-      `).all();
-      const answer = `Here are the latest decisions agreed across your meetings:
-
-` + allDecisions.map((d, i) => `${i + 1}. ${d.text} (${d.meetingTitle}${d.timestamp !== null ? ` \xB7 ${formatTimestamp(d.timestamp)}` : ""})`).join("\n");
-      const sources = allDecisions.map((d) => ({
-        meetingId: d.meetingId,
-        meetingTitle: d.meetingTitle,
-        timestamp: d.timestamp !== null ? d.timestamp : 0,
-        quote: d.text
-      }));
-      const intelStatus2 = getIntelligenceStatus();
-      return res.json({
-        question: question.trim(),
-        answer,
-        sources,
-        provider: intelStatus2.providerId,
-        llmProviderConfigured: intelStatus2.isLlmConfigured
-      });
-    }
+` + userActions.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? "Completed" : "Pending"}] (${formatTimestamp(a.timestamp)})`).join("\n\n") : "You have no action items assigned to you across any meetings.";
+    const sources = userActions.map((a) => ({
+      meetingId: a.meetingId,
+      meetingTitle: a.meetingTitle,
+      timestamp: a.timestamp,
+      speakerName: a.ownerName,
+      quote: a.sourceQuote || a.title
+    }));
     const intelStatus = getIntelligenceStatus();
-    if (process.env.VERCEL) {
-      const allMeetings = getInMemoryMeetings().map((m) => getInMemoryMeetingById(m.id));
-      const matchingUtterances = [];
-      allMeetings.forEach((m) => {
-        (m.transcript || []).forEach((u) => {
-          if (u.text.toLowerCase().includes(qLower) || u.speakerName.toLowerCase().includes(qLower)) {
-            matchingUtterances.push({
-              meetingId: m.id,
-              meetingTitle: m.title,
-              speakerName: u.speakerName,
-              timestamp: u.startTime,
-              text: u.text
-            });
-          }
-        });
-      });
-      if (matchingUtterances.length > 0) {
-        const topUtterances = matchingUtterances.slice(0, 3);
-        const answer = `Relevant meeting evidence found across ${topUtterances.length} transcript record${topUtterances.length > 1 ? "s" : ""}:
-
-` + topUtterances.map((u) => `"${u.text}"
-\u2014 ${u.speakerName} in "${u.meetingTitle}" (${formatTimestamp(u.timestamp)})`).join("\n\n");
-        const sources = topUtterances.map((u) => ({
-          meetingId: u.meetingId,
-          meetingTitle: u.meetingTitle,
-          timestamp: u.timestamp,
-          speakerName: u.speakerName,
-          quote: u.text
-        }));
-        return res.json({
-          question: question.trim(),
-          answer,
-          sources,
-          provider: intelStatus.providerId,
-          llmProviderConfigured: intelStatus.isLlmConfigured
-        });
-      }
-    } else {
-      const pattern = `%${question.trim()}%`;
-      const matchingUtterances = db.prepare(`
-        SELECT u.id, u.meeting_id AS meetingId, m.title AS meetingTitle,
-               u.speaker_name AS speakerName, u.start_time AS timestamp, u.text
-        FROM transcript_utterances u
-        JOIN meetings m ON u.meeting_id = m.id
-        WHERE u.text LIKE ? OR u.speaker_name LIKE ?
-        ORDER BY m.date DESC
-        LIMIT 3
-      `).all(pattern, pattern);
-      if (matchingUtterances.length > 0) {
-        const answer = `Relevant meeting evidence found across ${matchingUtterances.length} transcript record${matchingUtterances.length > 1 ? "s" : ""}:
-
-` + matchingUtterances.map((u) => `"${u.text}"
-\u2014 ${u.speakerName} in "${u.meetingTitle}" (${formatTimestamp(u.timestamp)})`).join("\n\n");
-        const sources = matchingUtterances.map((u) => ({
-          meetingId: u.meetingId,
-          meetingTitle: u.meetingTitle,
-          timestamp: u.timestamp,
-          speakerName: u.speakerName,
-          quote: u.text
-        }));
-        return res.json({
-          question: question.trim(),
-          answer,
-          sources,
-          provider: intelStatus.providerId,
-          llmProviderConfigured: intelStatus.isLlmConfigured
-        });
-      }
-    }
     res.json({
       question: question.trim(),
-      answer: `The available meeting records and spoken transcripts do not contain enough information to answer: "${question}". Meetwise responses are strictly restricted to verified evidence.`,
-      sources: [],
+      answer,
+      sources,
       provider: intelStatus.providerId,
       llmProviderConfigured: intelStatus.isLlmConfigured
     });
@@ -30139,8 +28376,6 @@ app.use((err, req, res, next) => {
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`\u{1F680} Meetwise API server running on http://localhost:${PORT}`);
-    console.log(`   Health check: http://localhost:${PORT}/api/health`);
-    console.log(`   Meetings list: http://localhost:${PORT}/api/meetings`);
   });
 }
 var server_default = app;
