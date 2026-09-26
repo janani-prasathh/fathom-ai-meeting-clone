@@ -1,4 +1,3 @@
-import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -6,27 +5,33 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database path: on Vercel use /tmp/meetwise.db which is writable in serverless environments
+// Database path: on Vercel, SQLite is bypassed in favor of pure in-memory store
 export const DB_PATH = process.env.DB_PATH || (
   process.env.VERCEL ? path.join('/tmp', 'meetwise.db') : path.join(__dirname, 'meetwise.db')
 );
 
-// Ensure directory exists
-const dbDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// Lazily instantiate database only if not running in Vercel serverless environment
+export let db: any = null;
+if (!process.env.VERCEL) {
+  try {
+    const Database = (await import('better-sqlite3')).default;
+    const dbDir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    db = new Database(DB_PATH);
+    db.pragma('foreign_keys = ON');
+    db.pragma('journal_mode = WAL');
+  } catch (err) {
+    console.warn('SQLite initialization skipped or failed:', err);
+  }
 }
-
-export const db = new Database(DB_PATH);
-
-// Enable foreign keys and WAL mode for reliability and performance
-db.pragma('foreign_keys = ON');
-db.pragma('journal_mode = WAL');
 
 /**
  * Initialize all database tables and indexes.
  */
 export function initDatabase() {
+  if (!db) return;
   db.exec(`
     CREATE TABLE IF NOT EXISTS participants (
       id TEXT PRIMARY KEY,

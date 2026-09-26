@@ -4,6 +4,17 @@ import cors from 'cors';
 import { db, getFullMeetingById, initDatabase } from './db.ts';
 import { seedDatabase } from './seed.ts';
 import {
+  getInMemoryMeetings,
+  getInMemoryMeetingById,
+  getInMemoryParticipants,
+  saveInMemoryMeeting,
+  getInMemoryUserMeetings,
+  getInMemoryUserActions,
+  getInMemoryUserDecisions,
+  getInMemoryUserQuestions,
+  updateInMemoryAction
+} from './memoryStore.ts';
+import {
   INTAKE_TEMPLATES,
   buildMeetingFromTemplate,
   buildMeetingFromUploadedFile
@@ -16,16 +27,20 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize database schema and ensure seed data exists
-initDatabase();
-try {
-  const meetingCount = (db.prepare('SELECT COUNT(*) as count FROM meetings').get() as any)?.count || 0;
-  if (meetingCount === 0) {
-    console.log('Database empty on startup; running seedDatabase()...');
-    seedDatabase();
+// Initialize database schema and ensure seed data exists for local execution
+if (!process.env.VERCEL) {
+  initDatabase();
+  try {
+    if (db) {
+      const meetingCount = (db.prepare('SELECT COUNT(*) as count FROM meetings').get() as any)?.count || 0;
+      if (meetingCount === 0) {
+        console.log('Database empty on startup; running seedDatabase()...');
+        seedDatabase();
+      }
+    }
+  } catch (err) {
+    console.warn('Auto-seed check encountered error:', err);
   }
-} catch (err) {
-  console.warn('Auto-seed check encountered error:', err);
 }
 
 // Middleware
@@ -43,12 +58,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ==========================================
-// 1. Health Endpoint
+// 1. Health Endpoint (Unconditional 200 OK)
 // ==========================================
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'meetwise-backend',
+    runtime: process.env.VERCEL ? 'serverless-memory' : 'sqlite',
     timestamp: new Date().toISOString()
   });
 });
@@ -58,6 +74,14 @@ app.get('/api/health', (req: Request, res: Response) => {
 // ==========================================
 app.get('/api/meetings', (req: Request, res: Response) => {
   try {
+    if (process.env.VERCEL) {
+      const meetings = getInMemoryMeetings();
+      return res.json({
+        count: meetings.length,
+        meetings
+      });
+    }
+
     const meetingRows = db.prepare(`
       SELECT m.id, m.title, m.original_calendar_title AS originalCalendarTitle,
              m.date, m.duration_seconds AS durationSeconds, m.overview,
@@ -123,8 +147,12 @@ app.get('/api/meetings', (req: Request, res: Response) => {
   }
 });
 
-// Helper: Persist complete meeting object into SQLite tables
+// Helper: Persist complete meeting object into SQLite tables or Memory
 export function saveMeetingToDatabase(m: any) {
+  if (process.env.VERCEL) {
+    return saveInMemoryMeeting(m);
+  }
+
   const meetingId = m.id || `meeting-${Date.now()}`;
 
   const insertTx = db.transaction(() => {
@@ -400,6 +428,11 @@ app.post('/api/meetings/import', async (req: Request, res: Response) => {
 // ==========================================
 app.get('/api/participants', (req: Request, res: Response) => {
   try {
+    if (process.env.VERCEL) {
+      const participants = getInMemoryParticipants();
+      return res.json({ participants });
+    }
+
     const participants = db.prepare('SELECT * FROM participants ORDER BY name ASC').all();
     res.json({ participants });
   } catch (err: any) {
@@ -413,7 +446,7 @@ app.get('/api/participants', (req: Request, res: Response) => {
 app.get('/api/meetings/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const meeting = getFullMeetingById(id);
+    const meeting = process.env.VERCEL ? getInMemoryMeetingById(id) : getFullMeetingById(id);
 
     if (!meeting) {
       return res.status(404).json({ error: 'Meeting not found', meetingId: id });
@@ -432,6 +465,16 @@ app.get('/api/meetings/:id', (req: Request, res: Response) => {
 app.get('/api/meetings/:id/transcript', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (process.env.VERCEL) {
+      const m = getInMemoryMeetingById(id);
+      if (!m) return res.status(404).json({ error: 'Meeting not found', meetingId: id });
+      return res.json({
+        meetingId: id,
+        count: m.transcript?.length || 0,
+        transcript: m.transcript || []
+      });
+    }
+
     const meetingExists = db.prepare('SELECT id FROM meetings WHERE id = ?').get(id);
     if (!meetingExists) {
       return res.status(404).json({ error: 'Meeting not found', meetingId: id });
@@ -463,6 +506,16 @@ app.get('/api/meetings/:id/transcript', (req: Request, res: Response) => {
 app.get('/api/meetings/:id/actions', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (process.env.VERCEL) {
+      const m = getInMemoryMeetingById(id);
+      if (!m) return res.status(404).json({ error: 'Meeting not found', meetingId: id });
+      return res.json({
+        meetingId: id,
+        count: m.actionItems?.length || 0,
+        actionItems: m.actionItems || []
+      });
+    }
+
     const meetingExists = db.prepare('SELECT id FROM meetings WHERE id = ?').get(id);
     if (!meetingExists) {
       return res.status(404).json({ error: 'Meeting not found', meetingId: id });
@@ -512,6 +565,17 @@ app.patch('/api/meetings/:id/actions/:actionId', (req: Request, res: Response) =
   try {
     const { id, actionId } = req.params;
     const { completed, title, assigneeId } = req.body;
+
+    if (process.env.VERCEL) {
+      const updated = updateInMemoryAction(id, actionId, { completed, title, assigneeId });
+      if (!updated) {
+        return res.status(404).json({ error: 'Action item not found', actionId, meetingId: id });
+      }
+      return res.json({
+        success: true,
+        actionItem: updated
+      });
+    }
 
     const action = db.prepare(`
       SELECT * FROM action_items WHERE id = ? AND meeting_id = ?
@@ -586,6 +650,17 @@ app.patch('/api/meetings/:id/actions/:actionId', (req: Request, res: Response) =
 app.get('/api/meetings/:id/decisions', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (process.env.VERCEL) {
+      const m = getInMemoryMeetingById(id);
+      if (!m) return res.status(404).json({ error: 'Meeting not found', meetingId: id });
+      const decisions = m.keyDecisionDetails || (m.keyDecisions || []).map((text, idx) => ({ id: `dec-${id}-${idx}`, text }));
+      return res.json({
+        meetingId: id,
+        count: decisions.length,
+        decisions
+      });
+    }
+
     const meetingExists = db.prepare('SELECT id FROM meetings WHERE id = ?').get(id);
     if (!meetingExists) {
       return res.status(404).json({ error: 'Meeting not found', meetingId: id });
@@ -619,6 +694,16 @@ app.get('/api/meetings/:id/decisions', (req: Request, res: Response) => {
 app.get('/api/meetings/:id/questions', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (process.env.VERCEL) {
+      const m = getInMemoryMeetingById(id);
+      if (!m) return res.status(404).json({ error: 'Meeting not found', meetingId: id });
+      return res.json({
+        meetingId: id,
+        count: m.openQuestions?.length || 0,
+        openQuestions: m.openQuestions || []
+      });
+    }
+
     const meetingExists = db.prepare('SELECT id FROM meetings WHERE id = ?').get(id);
     if (!meetingExists) {
       return res.status(404).json({ error: 'Meeting not found', meetingId: id });
@@ -655,6 +740,25 @@ app.get('/api/users/:userId/actions', (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const completedParam = req.query.completed;
+
+    if (process.env.VERCEL) {
+      const actionItems = getInMemoryUserActions(userId, completedParam as string);
+      const pendingCount = actionItems.filter(a => !a.completed).length;
+      const completedCount = actionItems.filter(a => a.completed).length;
+      const dueSoonCount = actionItems.filter(a => a.isDueSoon).length;
+
+      return res.json({
+        userId,
+        count: actionItems.length,
+        stats: {
+          total: actionItems.length,
+          pending: pendingCount,
+          completed: completedCount,
+          dueSoon: dueSoonCount
+        },
+        actionItems
+      });
+    }
 
     let sql = `
       SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
@@ -731,6 +835,15 @@ app.get('/api/users/:userId/actions', (req: Request, res: Response) => {
 app.get('/api/users/:userId/meetings', (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+
+    if (process.env.VERCEL) {
+      const meetings = getInMemoryUserMeetings(userId);
+      return res.json({
+        userId,
+        count: meetings.length,
+        meetings
+      });
+    }
 
     // Fetch meetings where user attended, owns actions, or spoke
     const meetingRows = db.prepare(`
@@ -830,6 +943,15 @@ app.get('/api/users/:userId/decisions', (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
+    if (process.env.VERCEL) {
+      const decisions = getInMemoryUserDecisions(userId);
+      return res.json({
+        userId,
+        count: decisions.length,
+        decisions
+      });
+    }
+
     const decisions = db.prepare(`
       SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
              d.text, d.timestamp
@@ -870,6 +992,15 @@ app.get('/api/users/:userId/decisions', (req: Request, res: Response) => {
 app.get('/api/users/:userId/questions', (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+
+    if (process.env.VERCEL) {
+      const openQuestions = getInMemoryUserQuestions(userId);
+      return res.json({
+        userId,
+        count: openQuestions.length,
+        openQuestions
+      });
+    }
 
     const questions = db.prepare(`
       SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
@@ -913,6 +1044,36 @@ app.get('/api/users/:userId/questions', (req: Request, res: Response) => {
 app.get('/api/actions', (req: Request, res: Response) => {
   try {
     const { userId, completed } = req.query;
+
+    if (process.env.VERCEL) {
+      const allMeetings = getInMemoryMeetings();
+      const actionItems: any[] = [];
+      allMeetings.forEach(m => {
+        const fullM = getInMemoryMeetingById(m.id);
+        (fullM?.actionItems || []).forEach(a => {
+          if (userId && a.assignee?.id !== userId) return;
+          if (completed !== undefined) {
+            const isComp = completed === 'true' || completed === '1';
+            if (Boolean(a.completed) !== isComp) return;
+          }
+          actionItems.push({
+            id: a.id,
+            meetingId: fullM.id,
+            meetingTitle: fullM.title,
+            meetingDate: fullM.date,
+            title: a.title,
+            ownerId: a.assignee?.id,
+            ownerName: a.assignee?.name,
+            ownerEmail: a.assignee?.email,
+            ownerAvatar: a.assignee?.avatar,
+            completed: Boolean(a.completed),
+            timestamp: a.timestamp,
+            sourceQuote: a.sourceQuote
+          });
+        });
+      });
+      return res.json({ count: actionItems.length, actionItems });
+    }
 
     let sql = `
       SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
@@ -968,6 +1129,25 @@ app.get('/api/actions', (req: Request, res: Response) => {
 // ==========================================
 app.get('/api/decisions', (req: Request, res: Response) => {
   try {
+    if (process.env.VERCEL) {
+      const allMeetings = getInMemoryMeetings();
+      const decisions: any[] = [];
+      allMeetings.forEach(m => {
+        const fullM = getInMemoryMeetingById(m.id);
+        (fullM?.keyDecisionDetails || []).forEach(d => {
+          decisions.push({
+            id: d.id,
+            meetingId: fullM.id,
+            meetingTitle: fullM.title,
+            meetingDate: fullM.date,
+            text: d.text,
+            timestamp: d.timestamp
+          });
+        });
+      });
+      return res.json({ count: decisions.length, decisions });
+    }
+
     const decisions = db.prepare(`
       SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
              d.text, d.timestamp
@@ -998,6 +1178,27 @@ app.get('/api/decisions', (req: Request, res: Response) => {
 // ==========================================
 app.get('/api/questions', (req: Request, res: Response) => {
   try {
+    if (process.env.VERCEL) {
+      const allMeetings = getInMemoryMeetings();
+      const openQuestions: any[] = [];
+      allMeetings.forEach(m => {
+        const fullM = getInMemoryMeetingById(m.id);
+        (fullM?.openQuestions || []).forEach(q => {
+          openQuestions.push({
+            id: q.id,
+            meetingId: fullM.id,
+            meetingTitle: fullM.title,
+            meetingDate: fullM.date,
+            question: q.question,
+            speakerName: q.speakerName,
+            timestamp: q.timestamp,
+            context: q.context
+          });
+        });
+      });
+      return res.json({ count: openQuestions.length, openQuestions });
+    }
+
     const questions = db.prepare(`
       SELECT q.id, q.meeting_id AS meetingId, m.title AS meetingTitle, m.date AS meetingDate,
              q.question, q.speaker_name AS speakerName, q.timestamp, q.context
@@ -1032,6 +1233,16 @@ app.patch('/api/meetings/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { title, activeTemplate, overview } = req.body;
+
+    if (process.env.VERCEL) {
+      const meeting = getInMemoryMeetingById(id);
+      if (!meeting) return res.status(404).json({ error: 'Meeting not found', meetingId: id });
+      if (title !== undefined) meeting.title = title.trim();
+      if (activeTemplate !== undefined) meeting.activeTemplate = activeTemplate.trim();
+      if (overview !== undefined) meeting.overview = overview.trim();
+      saveInMemoryMeeting(meeting);
+      return res.json({ success: true, meeting });
+    }
 
     const existing = db.prepare('SELECT * FROM meetings WHERE id = ?').get(id) as any;
     if (!existing) {
@@ -1092,6 +1303,83 @@ app.get('/api/search', (req: Request, res: Response) => {
     }
 
     const qLower = rawQuery.toLowerCase();
+
+    // Memory Store Search fallback for Vercel
+    if (process.env.VERCEL) {
+      const allMeetings = getInMemoryMeetings().map(m => getInMemoryMeetingById(m.id)!);
+      const allParticipants = getInMemoryParticipants();
+
+      const matchingPeople = allParticipants.filter(p =>
+        p.name.toLowerCase().includes(qLower) || p.email.toLowerCase().includes(qLower) || p.role.toLowerCase().includes(qLower)
+      );
+
+      const matchingMeetings = allMeetings.filter(m =>
+        m.title.toLowerCase().includes(qLower) || (m.overview && m.overview.toLowerCase().includes(qLower)) || (m.tags && m.tags.some(t => t.toLowerCase().includes(qLower)))
+      );
+
+      const matchingDecisions: any[] = [];
+      const matchingActions: any[] = [];
+      const matchingQuestions: any[] = [];
+      const matchingUtterances: any[] = [];
+
+      allMeetings.forEach(m => {
+        (m.keyDecisionDetails || []).forEach(d => {
+          if (d.text.toLowerCase().includes(qLower)) {
+            matchingDecisions.push({ id: d.id, meetingId: m.id, meetingTitle: m.title, text: d.text, timestamp: d.timestamp });
+          }
+        });
+        (m.actionItems || []).forEach(a => {
+          if (a.title.toLowerCase().includes(qLower) || a.assignee?.name.toLowerCase().includes(qLower) || (a.sourceQuote && a.sourceQuote.toLowerCase().includes(qLower))) {
+            matchingActions.push({
+              id: a.id,
+              meetingId: m.id,
+              meetingTitle: m.title,
+              title: a.title,
+              assigneeName: a.assignee?.name,
+              assigneeId: a.assignee?.id,
+              timestamp: a.timestamp,
+              completed: Boolean(a.completed)
+            });
+          }
+        });
+        (m.openQuestions || []).forEach(q => {
+          if (q.question.toLowerCase().includes(qLower) || (q.speakerName && q.speakerName.toLowerCase().includes(qLower))) {
+            matchingQuestions.push({
+              id: q.id,
+              meetingId: m.id,
+              meetingTitle: m.title,
+              question: q.question,
+              speakerName: q.speakerName,
+              timestamp: q.timestamp
+            });
+          }
+        });
+        (m.transcript || []).forEach(u => {
+          if (u.text.toLowerCase().includes(qLower) || u.speakerName.toLowerCase().includes(qLower)) {
+            matchingUtterances.push({
+              id: u.id,
+              meetingId: m.id,
+              meetingTitle: m.title,
+              speakerName: u.speakerName,
+              timestamp: u.startTime,
+              text: u.text
+            });
+          }
+        });
+      });
+
+      const totalMatches = matchingPeople.length + matchingMeetings.length + matchingDecisions.length + matchingActions.length + matchingQuestions.length + matchingUtterances.length;
+      return res.json({
+        query: rawQuery,
+        totalMatches,
+        people: matchingPeople,
+        meetings: matchingMeetings,
+        decisions: matchingDecisions,
+        actionItems: matchingActions,
+        openQuestions: matchingQuestions,
+        transcripts: matchingUtterances
+      });
+    }
 
     // 1. Natural language check: "my actions", "my pending actions", "my overdue actions"
     const isMyActionsQuery = /\bmy\s+(pending\s+|overdue\s+|open\s+)?(action|task)s?\b/i.test(qLower) ||
@@ -1372,41 +1660,25 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Question is required' });
     }
 
-    const meeting = db.prepare('SELECT id, title, overview, date FROM meetings WHERE id = ?').get(meetingId) as any;
+    const meeting = process.env.VERCEL ? getInMemoryMeetingById(meetingId) : getFullMeetingById(meetingId);
     if (!meeting) {
       return res.status(404).json({ error: 'Meeting not found', meetingId });
     }
 
-    // Load meeting entities from database
-    const decisions = db.prepare(`
-      SELECT id, text, timestamp
-      FROM decisions
-      WHERE meeting_id = ?
-      ORDER BY sequence_order ASC
-    `).all(meetingId) as any[];
-
-    const actions = db.prepare(`
-      SELECT a.id, a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
-             p.name AS assigneeName, p.id AS assigneeId
-      FROM action_items a
-      JOIN participants p ON a.assignee_id = p.id
-      WHERE a.meeting_id = ?
-      ORDER BY a.timestamp ASC
-    `).all(meetingId) as any[];
-
-    const questions = db.prepare(`
-      SELECT id, question, timestamp, speaker_name AS speakerName, context
-      FROM open_questions
-      WHERE meeting_id = ?
-      ORDER BY timestamp ASC
-    `).all(meetingId) as any[];
-
-    const utterances = db.prepare(`
-      SELECT id, speaker_name AS speakerName, start_time AS timestamp, text
-      FROM transcript_utterances
-      WHERE meeting_id = ?
-      ORDER BY sequence_order ASC
-    `).all(meetingId) as any[];
+    // Load meeting entities
+    const decisions = meeting.keyDecisionDetails || (meeting.keyDecisions || []).map((t, idx) => ({ id: `dec-${idx}`, text: t, timestamp: null }));
+    const actions = (meeting.actionItems || []).map(a => ({
+      ...a,
+      assigneeName: a.assignee?.name || 'Assignee',
+      assigneeId: a.assignee?.id || 'p-david'
+    }));
+    const questions = meeting.openQuestions || [];
+    const utterances = (meeting.transcript || []).map(u => ({
+      id: u.id,
+      speakerName: u.speakerName,
+      timestamp: u.startTime,
+      text: u.text
+    }));
 
     const qLower = question.trim().toLowerCase();
     let answer = '';
@@ -1422,12 +1694,11 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
     if (/\b(decis(ion|ions)|decid(e|ed)|agree(d|ment|ments)?)\b/i.test(qLower)) {
       if (decisions.length > 0) {
         answer = `The team agreed on ${decisions.length} key decision${decisions.length > 1 ? 's' : ''} during "${meeting.title}":\n\n` +
-          decisions.map((d, i) => `${i + 1}. ${d.text}${d.timestamp !== null ? ` (${formatTimestamp(d.timestamp)})` : ''}`).join('\n');
+          decisions.map((d, i) => `${i + 1}. ${d.text}${d.timestamp !== null && d.timestamp !== undefined ? ` (${formatTimestamp(d.timestamp)})` : ''}`).join('\n');
 
-        // Link sources to matching transcript utterances or decisions
         for (const d of decisions) {
           const matchU = utterances.find(u =>
-            (d.timestamp !== null && Math.abs(u.timestamp - d.timestamp) <= 15) ||
+            (d.timestamp !== null && d.timestamp !== undefined && Math.abs(u.timestamp - d.timestamp) <= 15) ||
             u.text.toLowerCase().includes('sqlite') ||
             u.text.toLowerCase().includes('decid') ||
             u.text.toLowerCase().includes('agree')
@@ -1435,7 +1706,7 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
           sources.push({
             meetingId: meeting.id,
             meetingTitle: meeting.title,
-            timestamp: d.timestamp !== null ? d.timestamp : (matchU?.timestamp || 0),
+            timestamp: d.timestamp !== null && d.timestamp !== undefined ? d.timestamp : (matchU?.timestamp || 0),
             speakerName: matchU?.speakerName || 'Meeting Decision',
             quote: matchU?.text ? matchU.text.slice(0, 140) + '...' : d.text
           });
@@ -1468,7 +1739,6 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
           answer = `No action items are currently assigned to you in "${meeting.title}".`;
         }
       } else {
-        // Check for specific topic (e.g. sqlite, benchmark, test, runner, etc.)
         const topicWords = qLower.split(/\s+/).filter(w =>
           w.length > 3 && !['what', 'when', 'where', 'which', 'owns', 'task', 'actions', 'item', 'items', 'this', 'meeting'].includes(w)
         );
@@ -1506,13 +1776,13 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
     else if (/\b(question(s)?|unresolved|unanswered|open)\b/i.test(qLower)) {
       if (questions.length > 0) {
         answer = `There ${questions.length > 1 ? 'are' : 'is'} ${questions.length} unresolved open question${questions.length > 1 ? 's' : ''} recorded for this meeting:\n\n` +
-          questions.map((q, i) => `${i + 1}. "${q.question}"${q.speakerName ? ` — Raised by ${q.speakerName}` : ''}${q.timestamp !== null ? ` at ${formatTimestamp(q.timestamp)}` : ''}`).join('\n');
+          questions.map((q, i) => `${i + 1}. "${q.question}"${q.speakerName ? ` — Raised by ${q.speakerName}` : ''}${q.timestamp !== null && q.timestamp !== undefined ? ` at ${formatTimestamp(q.timestamp)}` : ''}`).join('\n');
 
         for (const q of questions) {
           sources.push({
             meetingId: meeting.id,
             meetingTitle: meeting.title,
-            timestamp: q.timestamp !== null ? q.timestamp : 0,
+            timestamp: q.timestamp !== null && q.timestamp !== undefined ? q.timestamp : 0,
             speakerName: q.speakerName || 'Participant',
             quote: q.question
           });
@@ -1535,12 +1805,10 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
         .split(/\s+/)
         .filter(w => w.length >= 3 && !stopWords.has(w));
 
-      // Check if a specific speaker is named in the question (e.g. "Sarah", "David", "Elena", etc.)
       const namedSpeaker = ['sarah', 'david', 'elena', 'marcus', 'maya', 'thomas', 'rachel', 'alex'].find(name =>
         new RegExp(`\\b${name}\\b`, 'i').test(qLower)
       );
 
-      // Score utterances by whole-word keyword matches and speaker affinity
       const keywordRegexes = keywords.map(kw => ({
         word: kw,
         regex: new RegExp(`\\b${kw}\\b`, 'i')
@@ -1551,7 +1819,6 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
         const uSpeaker = u.speakerName || '';
         let score = 0;
 
-        // If query explicitly names this speaker, give a strong match boost
         if (namedSpeaker && new RegExp(`\\b${namedSpeaker}\\b`, 'i').test(uSpeaker)) {
           score += 4;
         }
@@ -1586,7 +1853,6 @@ app.post('/api/meetings/:meetingId/chat', (req: Request, res: Response) => {
           });
         }
       } else {
-        // Clean, grounded enterprise statement when evidence is insufficient
         answer = `The available meeting records and spoken transcript do not contain enough information to answer: "${question}". Meetwise responses are strictly restricted to verified evidence.`;
       }
     }
@@ -1622,6 +1888,31 @@ app.post('/api/chat', (req: Request, res: Response) => {
 
     // Check for "my actions" across all meetings
     if (/\b(my|me|assigned to me)\b/i.test(qLower) && /\b(action(s)?|task(s)?)\b/i.test(qLower)) {
+      if (process.env.VERCEL) {
+        const userActions = getInMemoryUserActions(userId);
+        const answer = userActions.length > 0
+          ? `Across your meetings, you have ${userActions.length} action items assigned to you:\n\n` +
+          userActions.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? 'Completed' : 'Pending'}]\n   • Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join('\n\n')
+          : 'You have no action items assigned to you across any meetings.';
+
+        const sources = userActions.map(a => ({
+          meetingId: a.meetingId,
+          meetingTitle: a.meetingTitle,
+          timestamp: a.timestamp,
+          speakerName: a.ownerName,
+          quote: a.sourceQuote || a.title
+        }));
+
+        const intelStatus = getIntelligenceStatus();
+        return res.json({
+          question: question.trim(),
+          answer,
+          sources,
+          provider: intelStatus.providerId,
+          llmProviderConfigured: intelStatus.isLlmConfigured
+        });
+      }
+
       const userActions = db.prepare(`
         SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
                a.title, a.timestamp, a.completed, a.source_quote AS sourceQuote, p.name AS assigneeName
@@ -1645,64 +1936,40 @@ app.post('/api/chat', (req: Request, res: Response) => {
         quote: a.sourceQuote || a.title
       }));
 
+      const intelStatus = getIntelligenceStatus();
       return res.json({
         question: question.trim(),
         answer,
         sources,
-        llmProviderConfigured: false
+        provider: intelStatus.providerId,
+        llmProviderConfigured: intelStatus.isLlmConfigured
       });
-    }
-
-    // Ownership or topic actions across all meetings (e.g. "Who owns the SQLite benchmark?")
-    if (/\b(who\s+owns|assigned|action(s)?|task(s)?|commit(ment|ted)?|owner)\b/i.test(qLower)) {
-      const topicWords = qLower.split(/\s+/).filter(w =>
-        w.length > 3 && !['what', 'when', 'where', 'which', 'owns', 'task', 'actions', 'item', 'items', 'this', 'meeting'].includes(w)
-      );
-
-      if (topicWords.length > 0) {
-        const allActions = db.prepare(`
-          SELECT a.id, a.meeting_id AS meetingId, m.title AS meetingTitle,
-                 a.title, a.timestamp, a.completed, a.source_quote AS sourceQuote, p.name AS assigneeName
-          FROM action_items a
-          JOIN meetings m ON a.meeting_id = m.id
-          JOIN participants p ON a.assignee_id = p.id
-          ORDER BY m.date DESC
-        `).all() as any[];
-
-        const matched = allActions.filter(a =>
-          topicWords.some(tw =>
-            a.title.toLowerCase().includes(tw) ||
-            (a.sourceQuote && a.sourceQuote.toLowerCase().includes(tw)) ||
-            a.assigneeName.toLowerCase().includes(tw)
-          )
-        );
-
-        if (matched.length > 0) {
-          const answer = `Found ${matched.length} action item${matched.length > 1 ? 's' : ''} across meetings matching your query:\n\n` +
-            matched.map((a, i) => `${i + 1}. "${a.title}"\n   • Assignee: ${a.assigneeName}\n   • Status: ${a.completed ? 'Completed' : 'Pending'}\n   • Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join('\n\n');
-
-          const sources = matched.map(a => ({
-            meetingId: a.meetingId,
-            meetingTitle: a.meetingTitle,
-            timestamp: a.timestamp,
-            speakerName: a.assigneeName,
-            quote: a.sourceQuote || a.title
-          }));
-
-          const intelStatus = getIntelligenceStatus();
-          return res.json({
-            question: question.trim(),
-            answer,
-            sources,
-            provider: intelStatus.providerId,
-            llmProviderConfigured: intelStatus.isLlmConfigured
-          });
-        }
-      }
     }
 
     // Decisions across meetings
     if (/\b(decis(ion|ions)|decid(e|ed))\b/i.test(qLower)) {
+      if (process.env.VERCEL) {
+        const decisions = getInMemoryUserDecisions(userId);
+        const answer = `Here are the latest decisions agreed across your meetings:\n\n` +
+          decisions.slice(0, 10).map((d, i) => `${i + 1}. ${d.text} (${d.meetingTitle}${d.timestamp ? ` · ${formatTimestamp(d.timestamp)}` : ''})`).join('\n');
+
+        const sources = decisions.slice(0, 10).map(d => ({
+          meetingId: d.meetingId,
+          meetingTitle: d.meetingTitle,
+          timestamp: d.timestamp || 0,
+          quote: d.text
+        }));
+
+        const intelStatus = getIntelligenceStatus();
+        return res.json({
+          question: question.trim(),
+          answer,
+          sources,
+          provider: intelStatus.providerId,
+          llmProviderConfigured: intelStatus.isLlmConfigured
+        });
+      }
+
       const allDecisions = db.prepare(`
         SELECT d.id, d.meeting_id AS meetingId, m.title AS meetingTitle,
                d.text, d.timestamp
@@ -1733,37 +2000,77 @@ app.post('/api/chat', (req: Request, res: Response) => {
     }
 
     // Default cross-meeting search for matching transcripts
-    const pattern = `%${question.trim()}%`;
-    const matchingUtterances = db.prepare(`
-      SELECT u.id, u.meeting_id AS meetingId, m.title AS meetingTitle,
-             u.speaker_name AS speakerName, u.start_time AS timestamp, u.text
-      FROM transcript_utterances u
-      JOIN meetings m ON u.meeting_id = m.id
-      WHERE u.text LIKE ? OR u.speaker_name LIKE ?
-      ORDER BY m.date DESC
-      LIMIT 3
-    `).all(pattern, pattern) as any[];
-
     const intelStatus = getIntelligenceStatus();
-    if (matchingUtterances.length > 0) {
-      const answer = `Relevant meeting evidence found across ${matchingUtterances.length} transcript record${matchingUtterances.length > 1 ? 's' : ''}:\n\n` +
-        matchingUtterances.map(u => `"${u.text}"\n— ${u.speakerName} in "${u.meetingTitle}" (${formatTimestamp(u.timestamp)})`).join('\n\n');
-
-      const sources = matchingUtterances.map(u => ({
-        meetingId: u.meetingId,
-        meetingTitle: u.meetingTitle,
-        timestamp: u.timestamp,
-        speakerName: u.speakerName,
-        quote: u.text
-      }));
-
-      return res.json({
-        question: question.trim(),
-        answer,
-        sources,
-        provider: intelStatus.providerId,
-        llmProviderConfigured: intelStatus.isLlmConfigured
+    if (process.env.VERCEL) {
+      const allMeetings = getInMemoryMeetings().map(m => getInMemoryMeetingById(m.id)!);
+      const matchingUtterances: any[] = [];
+      allMeetings.forEach(m => {
+        (m.transcript || []).forEach(u => {
+          if (u.text.toLowerCase().includes(qLower) || u.speakerName.toLowerCase().includes(qLower)) {
+            matchingUtterances.push({
+              meetingId: m.id,
+              meetingTitle: m.title,
+              speakerName: u.speakerName,
+              timestamp: u.startTime,
+              text: u.text
+            });
+          }
+        });
       });
+
+      if (matchingUtterances.length > 0) {
+        const topUtterances = matchingUtterances.slice(0, 3);
+        const answer = `Relevant meeting evidence found across ${topUtterances.length} transcript record${topUtterances.length > 1 ? 's' : ''}:\n\n` +
+          topUtterances.map(u => `"${u.text}"\n— ${u.speakerName} in "${u.meetingTitle}" (${formatTimestamp(u.timestamp)})`).join('\n\n');
+
+        const sources = topUtterances.map(u => ({
+          meetingId: u.meetingId,
+          meetingTitle: u.meetingTitle,
+          timestamp: u.timestamp,
+          speakerName: u.speakerName,
+          quote: u.text
+        }));
+
+        return res.json({
+          question: question.trim(),
+          answer,
+          sources,
+          provider: intelStatus.providerId,
+          llmProviderConfigured: intelStatus.isLlmConfigured
+        });
+      }
+    } else {
+      const pattern = `%${question.trim()}%`;
+      const matchingUtterances = db.prepare(`
+        SELECT u.id, u.meeting_id AS meetingId, m.title AS meetingTitle,
+               u.speaker_name AS speakerName, u.start_time AS timestamp, u.text
+        FROM transcript_utterances u
+        JOIN meetings m ON u.meeting_id = m.id
+        WHERE u.text LIKE ? OR u.speaker_name LIKE ?
+        ORDER BY m.date DESC
+        LIMIT 3
+      `).all(pattern, pattern) as any[];
+
+      if (matchingUtterances.length > 0) {
+        const answer = `Relevant meeting evidence found across ${matchingUtterances.length} transcript record${matchingUtterances.length > 1 ? 's' : ''}:\n\n` +
+          matchingUtterances.map(u => `"${u.text}"\n— ${u.speakerName} in "${u.meetingTitle}" (${formatTimestamp(u.timestamp)})`).join('\n\n');
+
+        const sources = matchingUtterances.map(u => ({
+          meetingId: u.meetingId,
+          meetingTitle: u.meetingTitle,
+          timestamp: u.timestamp,
+          speakerName: u.speakerName,
+          quote: u.text
+        }));
+
+        return res.json({
+          question: question.trim(),
+          answer,
+          sources,
+          provider: intelStatus.providerId,
+          llmProviderConfigured: intelStatus.isLlmConfigured
+        });
+      }
     }
 
     res.json({
@@ -1785,7 +2092,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-/// Start server locally, but let Vercel handle the serverless function
+// Start server locally, but let Vercel handle the serverless function
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 Meetwise API server running on http://localhost:${PORT}`);
@@ -1795,3 +2102,4 @@ if (!process.env.VERCEL) {
 }
 
 export default app;
+
