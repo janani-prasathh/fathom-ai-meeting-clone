@@ -1085,7 +1085,7 @@ app.get('/api/search', (req: Request, res: Response) => {
 
     // 1. Natural language check: "my actions", "my pending actions", "my overdue actions"
     const isMyActionsQuery = /\bmy\s+(pending\s+|overdue\s+|open\s+)?(action|task)s?\b/i.test(qLower) ||
-                             /\b(assigned\s+to\s+me)\b/i.test(qLower);
+      /\b(assigned\s+to\s+me)\b/i.test(qLower);
     const isOnlyPending = qLower.includes('pending') || qLower.includes('overdue') || qLower.includes('open');
 
     if (isMyActionsQuery) {
@@ -1143,7 +1143,7 @@ app.get('/api/search', (req: Request, res: Response) => {
 
     // 1b. Check for generic "pending actions" or "pending tasks"
     const isGenericPendingQuery = /\b(pending\s+actions?|pending\s+tasks?|open\s+actions?|open\s+tasks?)\b/i.test(qLower) ||
-                                  qLower === 'pending' || qLower === 'actions' || qLower === 'tasks';
+      qLower === 'pending' || qLower === 'actions' || qLower === 'tasks';
 
     if (isGenericPendingQuery) {
       const pendingActions = db.prepare(`
@@ -1624,7 +1624,7 @@ app.post('/api/chat', (req: Request, res: Response) => {
 
       const answer = userActions.length > 0
         ? `Across your meetings, you have ${userActions.length} action items assigned to you:\n\n` +
-          userActions.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? 'Completed' : 'Pending'}]\n   • Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join('\n\n')
+        userActions.map((a, i) => `${i + 1}. "${a.title}" [${a.completed ? 'Completed' : 'Pending'}]\n   • Meeting: ${a.meetingTitle} (${formatTimestamp(a.timestamp)})`).join('\n\n')
         : 'You have no action items assigned to you across any meetings.';
 
       const sources = userActions.map(a => ({
@@ -1775,13 +1775,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-// Start listening if run directly
-export const server = process.env.VERCEL
-  ? undefined
-  : app.listen(PORT, () => {
-      console.log(`🚀 Meetwise API server running on http://localhost:${PORT}`);
-      console.log(`   Health check: http://localhost:${PORT}/api/health`);
-      console.log(`   Meetings list: http://localhost:${PORT}/api/meetings`);
-    });
+/// Start server locally, but let Vercel handle the serverless function
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Meetwise API server running on http://localhost:${PORT}`);
+    console.log(`   Health check: http://localhost:${PORT}/api/health`);
+    console.log(`   Meetings list: http://localhost:${PORT}/api/meetings`);
+  });
+}
 
 export default app;
