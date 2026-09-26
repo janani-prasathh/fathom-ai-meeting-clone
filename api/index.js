@@ -15686,7 +15686,7 @@ var require_mimeScore = __commonJS({
 var require_mime_types = __commonJS({
   "node_modules/mime-types/index.js"(exports) {
     "use strict";
-    var db2 = require_mime_db();
+    var db3 = require_mime_db();
     var extname = __require("path").extname;
     var mimeScore = require_mimeScore();
     var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/;
@@ -15705,7 +15705,7 @@ var require_mime_types = __commonJS({
         return false;
       }
       var match = EXTRACT_TYPE_REGEXP.exec(type);
-      var mime = match && db2[match[1].toLowerCase()];
+      var mime = match && db3[match[1].toLowerCase()];
       if (mime && mime.charset) {
         return mime.charset;
       }
@@ -15750,8 +15750,8 @@ var require_mime_types = __commonJS({
       return exports.types[extension2] || false;
     }
     function populateMaps(extensions, types) {
-      Object.keys(db2).forEach(function forEachMimeType(type) {
-        var mime = db2[type];
+      Object.keys(db3).forEach(function forEachMimeType(type) {
+        var mime = db3[type];
         var exts = mime.extensions;
         if (!exts || !exts.length) {
           return;
@@ -15772,14 +15772,14 @@ var require_mime_types = __commonJS({
       });
     }
     function _preferredType(ext, type0, type1) {
-      var score0 = type0 ? mimeScore(type0, db2[type0].source) : 0;
-      var score1 = type1 ? mimeScore(type1, db2[type1].source) : 0;
+      var score0 = type0 ? mimeScore(type0, db3[type0].source) : 0;
+      var score1 = type1 ? mimeScore(type1, db3[type1].source) : 0;
       return score0 > score1 ? type0 : type1;
     }
     function _preferredTypeLegacy(ext, type0, type1) {
       var SOURCE_RANK = ["nginx", "apache", void 0, "iana"];
-      var score0 = type0 ? SOURCE_RANK.indexOf(db2[type0].source) : 0;
-      var score1 = type1 ? SOURCE_RANK.indexOf(db2[type1].source) : 0;
+      var score0 = type0 ? SOURCE_RANK.indexOf(db3[type0].source) : 0;
+      var score1 = type1 ? SOURCE_RANK.indexOf(db3[type1].source) : 0;
       if (exports.types[extension] !== "application/octet-stream" && (score0 > score1 || score0 === score1 && exports.types[extension]?.slice(0, 12) === "application/")) {
         return type0;
       }
@@ -24837,23 +24837,23 @@ var import_cors = __toESM(require_lib3(), 1);
 
 // server/db.ts
 var DB_PATH = process.env.DB_PATH || path.join("/tmp", "meetwise.db");
-var db = null;
+var db2 = null;
 function getDb() {
   if (process.env.VERCEL) {
     return null;
   }
-  if (!db) {
+  if (!db2) {
     try {
       const pkg = "better-sqlite3";
       const Database = eval("require")(pkg);
-      db = new Database(DB_PATH);
-      db.pragma("foreign_keys = ON");
-      db.pragma("journal_mode = WAL");
+      db2 = new Database(DB_PATH);
+      db2.pragma("foreign_keys = ON");
+      db2.pragma("journal_mode = WAL");
     } catch (err) {
       console.warn("SQLite initialization skipped or failed:", err);
     }
   }
-  return db;
+  return db2;
 }
 function initDatabase() {
   if (process.env.VERCEL) return;
@@ -24993,14 +24993,14 @@ if (!process.env.VERCEL) {
   initDatabase();
 }
 function getFullMeetingById(id) {
-  const meetingRow = db.prepare(`SELECT * FROM meetings WHERE id = ?`).get(id);
+  const meetingRow = db2.prepare(`SELECT * FROM meetings WHERE id = ?`).get(id);
   if (!meetingRow) return null;
-  const participants2 = db.prepare(`
+  const participants2 = db2.prepare(`
     SELECT p.* FROM participants p
     JOIN meeting_participants mp ON p.id = mp.participant_id
     WHERE mp.meeting_id = ?
   `).all(id);
-  const transcriptRows = db.prepare(`
+  const transcriptRows = db2.prepare(`
     SELECT id, speaker_id AS speakerId, speaker_name AS speakerName,
            speaker_avatar AS speakerAvatar, start_time AS startTime,
            end_time AS endTime, text
@@ -25008,7 +25008,7 @@ function getFullMeetingById(id) {
     WHERE meeting_id = ?
     ORDER BY sequence_order ASC
   `).all(id);
-  const actionRows = db.prepare(`
+  const actionRows = db2.prepare(`
     SELECT a.id, a.title, a.completed, a.timestamp, a.source_quote AS sourceQuote,
            a.confidence, a.evidence_start AS evidenceStart, a.evidence_end AS evidenceEnd,
            a.source_utterance_id AS sourceUtteranceId,
@@ -25038,7 +25038,7 @@ function getFullMeetingById(id) {
       color: row.p_color
     }
   }));
-  const decisionRows = db.prepare(`
+  const decisionRows = db2.prepare(`
     SELECT id, text, timestamp, confidence, source_utterance_id AS sourceUtteranceId
     FROM decisions
     WHERE meeting_id = ?
@@ -25052,7 +25052,7 @@ function getFullMeetingById(id) {
     confidence: d.confidence !== null && d.confidence !== void 0 ? d.confidence : 1,
     sourceUtteranceId: d.sourceUtteranceId || void 0
   }));
-  const openQuestionRows = db.prepare(`
+  const openQuestionRows = db2.prepare(`
     SELECT id, question, timestamp, speaker_name AS speakerName, context,
            confidence, source_utterance_id AS sourceUtteranceId
     FROM open_questions
@@ -25068,7 +25068,7 @@ function getFullMeetingById(id) {
     confidence: q.confidence !== null && q.confidence !== void 0 ? q.confidence : 1,
     sourceUtteranceId: q.sourceUtteranceId || void 0
   }));
-  const topicRows = db.prepare(`
+  const topicRows = db2.prepare(`
     SELECT title, timestamp, bullets_json
     FROM topic_discussions
     WHERE meeting_id = ?
@@ -25079,14 +25079,14 @@ function getFullMeetingById(id) {
     timestamp: t.timestamp,
     bullets: JSON.parse(t.bullets_json)
   }));
-  const highlightRows = db.prepare(`
+  const highlightRows = db2.prepare(`
     SELECT id, title, start_time AS startTime, end_time AS endTime,
            speaker_name AS speakerName, summary, tag
     FROM highlights
     WHERE meeting_id = ?
     ORDER BY start_time ASC
   `).all(id);
-  const shareRows = db.prepare(`
+  const shareRows = db2.prepare(`
     SELECT email, name, avatar, is_attendee AS isAttendee, shared_at AS sharedAt, revoked
     FROM shares
     WHERE meeting_id = ?
@@ -26298,11 +26298,11 @@ var seedMeetings = [
 function seedDatabase() {
   console.log("\u{1F331} Starting database seed migration from seedMeetings.ts...");
   initDatabase();
-  const insertParticipant = db.prepare(`
+  const insertParticipant = db2.prepare(`
     INSERT OR IGNORE INTO participants (id, name, email, avatar, role, color)
     VALUES (@id, @name, @email, @avatar, @role, @color)
   `);
-  const insertMeeting = db.prepare(`
+  const insertMeeting = db2.prepare(`
     INSERT OR REPLACE INTO meetings (
       id, title, original_calendar_title, date, duration_seconds,
       overview, active_template, templates_json, suggested_questions_json, tags_json
@@ -26311,11 +26311,11 @@ function seedDatabase() {
       @overview, @active_template, @templates_json, @suggested_questions_json, @tags_json
     )
   `);
-  const insertMeetingParticipant = db.prepare(`
+  const insertMeetingParticipant = db2.prepare(`
     INSERT OR REPLACE INTO meeting_participants (meeting_id, participant_id)
     VALUES (?, ?)
   `);
-  const insertUtterance = db.prepare(`
+  const insertUtterance = db2.prepare(`
     INSERT OR REPLACE INTO transcript_utterances (
       id, meeting_id, speaker_id, speaker_name, speaker_avatar,
       start_time, end_time, text, sequence_order
@@ -26324,42 +26324,42 @@ function seedDatabase() {
       @start_time, @end_time, @text, @sequence_order
     )
   `);
-  const insertActionItem = db.prepare(`
+  const insertActionItem = db2.prepare(`
     INSERT OR REPLACE INTO action_items (
       id, meeting_id, title, assignee_id, completed, timestamp, source_quote
     ) VALUES (
       @id, @meeting_id, @title, @assignee_id, @completed, @timestamp, @source_quote
     )
   `);
-  const insertDecision = db.prepare(`
+  const insertDecision = db2.prepare(`
     INSERT OR REPLACE INTO decisions (
       id, meeting_id, text, timestamp, sequence_order
     ) VALUES (
       @id, @meeting_id, @text, @timestamp, @sequence_order
     )
   `);
-  const insertOpenQuestion = db.prepare(`
+  const insertOpenQuestion = db2.prepare(`
     INSERT OR REPLACE INTO open_questions (
       id, meeting_id, question, timestamp, speaker_name, context
     ) VALUES (
       @id, @meeting_id, @question, @timestamp, @speaker_name, @context
     )
   `);
-  const insertHighlight = db.prepare(`
+  const insertHighlight = db2.prepare(`
     INSERT OR REPLACE INTO highlights (
       id, meeting_id, title, start_time, end_time, speaker_name, summary, tag
     ) VALUES (
       @id, @meeting_id, @title, @start_time, @end_time, @speaker_name, @summary, @tag
     )
   `);
-  const insertTopic = db.prepare(`
+  const insertTopic = db2.prepare(`
     INSERT OR REPLACE INTO topic_discussions (
       id, meeting_id, title, timestamp, bullets_json, sequence_order
     ) VALUES (
       @id, @meeting_id, @title, @timestamp, @bullets_json, @sequence_order
     )
   `);
-  const insertShare = db.prepare(`
+  const insertShare = db2.prepare(`
     INSERT OR REPLACE INTO shares (
       id, meeting_id, email, name, avatar, is_attendee, shared_at, revoked
     ) VALUES (
@@ -26370,8 +26370,8 @@ function seedDatabase() {
   let totalActions = 0;
   let totalDecisions = 0;
   let totalQuestions = 0;
-  const seedTransaction = db.transaction(() => {
-    db.exec(`
+  const seedTransaction = db2.transaction(() => {
+    db2.exec(`
       DELETE FROM shares;
       DELETE FROM topic_discussions;
       DELETE FROM highlights;
@@ -28353,8 +28353,9 @@ var PORT = process.env.PORT || 3001;
 if (!process.env.VERCEL) {
   initDatabase();
   try {
-    if (db) {
-      const meetingCount = db.prepare("SELECT COUNT(*) as count FROM meetings").get()?.count || 0;
+    const database = getDb();
+    if (database) {
+      const meetingCount = database.prepare("SELECT COUNT(*) as count FROM meetings").get()?.count || 0;
       if (meetingCount === 0) {
         console.log("Database empty on startup; running seedDatabase()...");
         seedDatabase();

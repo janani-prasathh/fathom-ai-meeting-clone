@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { db, getFullMeetingById, initDatabase } from './db.ts';
+import { getDb, getFullMeetingById, initDatabase } from './db.ts';
 import { seedDatabase } from './seed.ts';
 import {
   getInMemoryMeetings,
@@ -31,8 +31,9 @@ const PORT = process.env.PORT || 3001;
 if (!process.env.VERCEL) {
   initDatabase();
   try {
-    if (db) {
-      const meetingCount = (db.prepare('SELECT COUNT(*) as count FROM meetings').get() as any)?.count || 0;
+    const database = getDb();
+    if (database) {
+      const meetingCount = (database.prepare('SELECT COUNT(*) as count FROM meetings').get() as any)?.count || 0;
       if (meetingCount === 0) {
         console.log('Database empty on startup; running seedDatabase()...');
         seedDatabase();
