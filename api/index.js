@@ -27843,6 +27843,13 @@ app.use((req, res, next) => {
   });
   next();
 });
+app.get(["/", "/api"], (req, res) => {
+  res.json({
+    status: "ok",
+    service: "meetwise-backend",
+    message: "Meetwise API root"
+  });
+});
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",

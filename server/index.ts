@@ -39,6 +39,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ==========================================
+// 0. API Root Handlers
+// ==========================================
+app.get(['/', '/api'], (req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    service: 'meetwise-backend',
+    message: 'Meetwise API root'
+  });
+});
+
+// ==========================================
 // 1. Health Endpoint (Unconditional 200 OK)
 // ==========================================
 app.get('/api/health', (req: Request, res: Response) => {
