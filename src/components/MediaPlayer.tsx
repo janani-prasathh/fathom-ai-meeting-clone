@@ -31,13 +31,17 @@ export const MediaPlayer: React.FC = () => {
     return () => clearInterval(interval);
   }, [isPlaying, currentTime, playbackRate, activeMeeting, seekTo]);
 
+  const transcript = activeMeeting?.transcript || [];
+  const participants = activeMeeting?.participants || [];
+  const topics = activeMeeting?.topics || [];
+
   // Find active speaker from current time
-  const currentUtterance = activeMeeting?.transcript.find(
+  const currentUtterance = transcript.find(
     (u) => currentTime >= u.startTime && currentTime <= u.endTime
   );
-  const activeSpeaker = activeMeeting?.participants.find(
+  const activeSpeaker = participants.find(
     (p) => p.name === currentUtterance?.speakerName
-  ) || activeMeeting?.participants[0];
+  ) || participants[0];
 
   // Canvas visualizer animation
   useEffect(() => {
@@ -211,7 +215,7 @@ export const MediaPlayer: React.FC = () => {
             </div>
 
             {/* Chapter markers */}
-            {activeMeeting.topics.map((t) => {
+            {topics.map((t) => {
               const markerPercent = (t.timestamp / totalSeconds) * 100;
               return (
                 <div
@@ -278,9 +282,9 @@ export const MediaPlayer: React.FC = () => {
 
       {/* Meeting Attendees Card */}
       <div className="media-pane-card">
-        <h4>People in this meeting ({activeMeeting.participants.length})</h4>
+        <h4>People in this meeting ({participants.length})</h4>
         <div className="call-attendee-list">
-          {activeMeeting.participants.map((p) => {
+          {participants.map((p) => {
             const isSpeakingNow = currentUtterance?.speakerName === p.name;
             return (
               <div key={p.id} className="call-attendee-row">

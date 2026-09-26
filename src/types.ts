@@ -1,10 +1,50 @@
 export interface Participant {
   id: string;
   name: string;
+  username?: string;
   email: string;
   avatar: string;
   role: string;
   color: string;
+}
+
+export type WorkspaceView = 'overview' | 'actions' | 'decisions' | 'questions' | 'my-meetings' | 'meetings';
+
+export interface UserInvolvement {
+  attended: boolean;
+  myActionsCount: number;
+  decisionsCount: number;
+  spokeCount: number;
+}
+
+export interface MeetingStats {
+  totalActions: number;
+  completedActions: number;
+  decisionsCount: number;
+  questionsCount: number;
+  utterancesCount?: number;
+  myActionsCount?: number;
+  myPendingActionsCount?: number;
+}
+
+export interface UserActionItem {
+  id: string;
+  meetingId: string;
+  meetingTitle: string;
+  meetingDate: string;
+  title: string;
+  ownerId: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerAvatar: string;
+  completed: boolean;
+  dueDate: string;
+  dueDateLabel: string;
+  isDueSoon: boolean;
+  timestamp?: number;
+  sourceQuote?: string;
+  confidence?: number;
+  sourceUtteranceId?: string;
 }
 
 export interface TranscriptUtterance {
@@ -24,6 +64,10 @@ export interface ActionItem {
   completed: boolean;
   timestamp: number; // seconds
   sourceQuote: string;
+  confidence?: number;
+  evidenceStart?: number;
+  evidenceEnd?: number;
+  sourceUtteranceId?: string;
 }
 
 export interface Highlight {
@@ -66,6 +110,8 @@ export interface DecisionInsight {
   id?: string;
   text: string;
   timestamp?: number;
+  confidence?: number;
+  sourceUtteranceId?: string;
 }
 
 export interface OpenQuestion {
@@ -74,6 +120,26 @@ export interface OpenQuestion {
   timestamp?: number;
   speakerName?: string;
   context?: string;
+  confidence?: number;
+  sourceUtteranceId?: string;
+}
+
+export interface EvidenceItem {
+  id?: string;
+  type: 'action' | 'decision' | 'question' | 'topic';
+  title: string;
+  meetingId: string;
+  meetingTitle: string;
+  speakerName?: string;
+  speakerAvatar?: string;
+  timestamp?: number;
+  sourceQuote?: string;
+  confidence?: number;
+  sourceUtteranceId?: string;
+  assigneeName?: string;
+  assigneeAvatar?: string;
+  dueDate?: string;
+  whyAppears?: string[];
 }
 
 export interface Meeting {
@@ -96,6 +162,8 @@ export interface Meeting {
   templates: Record<string, SummaryTemplate>;
   suggestedQuestions: string[];
   tags: string[];
+  stats?: MeetingStats;
+  involvement?: UserInvolvement;
 }
 
 export interface ChatMessage {
@@ -107,6 +175,27 @@ export interface ChatMessage {
     meetingId: string;
     meetingTitle: string;
     timestamp: number;
+    speakerName?: string;
     quote: string;
   }[];
 }
+
+export interface IntakeTemplate {
+  id: string;
+  title: string;
+  sourceType: 'audio' | 'video' | 'transcript';
+  fileName: string;
+  fileSize: string;
+  durationSeconds: number;
+  durationFormatted: string;
+  description: string;
+  participants: Participant[];
+  previewOutcomes: {
+    actionsCount: number;
+    decisionsCount: number;
+    questionsCount: number;
+  };
+  sampleAction: string;
+  sampleDecision: string;
+}
+

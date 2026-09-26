@@ -7,6 +7,8 @@ export const HighlightsViewer: React.FC = () => {
 
   if (!activeMeeting) return null;
 
+  const highlights = activeMeeting.highlights || [];
+
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
@@ -23,7 +25,7 @@ export const HighlightsViewer: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 className="section-title" style={{ margin: 0 }}>
           <span>Curated Highlights & Key Moments</span>
-          <span className="brand-badge">{activeMeeting.highlights.length} Clips</span>
+          <span className="brand-badge">{highlights.length} Clips</span>
         </h3>
         <button
           className="btn-secondary"
@@ -34,7 +36,7 @@ export const HighlightsViewer: React.FC = () => {
         </button>
       </div>
 
-      {activeMeeting.highlights.map((h) => {
+      {highlights.map((h) => {
         const durationSecs = h.endTime - h.startTime;
         return (
           <div key={h.id} className="topic-card">
@@ -94,7 +96,7 @@ export const HighlightsViewer: React.FC = () => {
         );
       })}
 
-      {activeMeeting.highlights.length === 0 && (
+      {highlights.length === 0 && (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
           No highlights saved yet.
         </div>

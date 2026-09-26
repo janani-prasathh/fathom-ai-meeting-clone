@@ -1,8 +1,34 @@
 import React, { useState } from 'react';
 import { useMeeting } from '../context/MeetingContext';
-import { Meeting } from '../types';
-import { participants } from '../data/seedMeetings';
+import { Meeting, Participant } from '../types';
 import { X, Video, Sparkles, Check, Loader2 } from 'lucide-react';
+
+const simParticipants: Record<string, Participant> = {
+  david: {
+    id: 'p-david',
+    name: 'David Kim',
+    email: 'david@meetwise.internal',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    role: 'VP Product',
+    color: '#6366f1'
+  },
+  sarah: {
+    id: 'p-sarah',
+    name: 'Sarah Chen',
+    email: 'sarah.chen@meetwise.internal',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    role: 'Staff ML Engineer',
+    color: '#ec4899'
+  },
+  maya: {
+    id: 'p-maya',
+    name: 'Maya Patel',
+    email: 'maya.patel@meetwise.internal',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    role: 'Frontend Lead',
+    color: '#8b5cf6'
+  }
+};
 
 export const SimulateMeetingModal: React.FC = () => {
   const { isSimulateModalOpen, setIsSimulateModalOpen, addSimulatedMeeting } = useMeeting();
@@ -28,7 +54,7 @@ export const SimulateMeetingModal: React.FC = () => {
             originalCalendarTitle: 'Impromptu Google Meet Meeting',
             date: new Date().toISOString(),
             durationSeconds: 980, // ~16 mins
-            participants: [participants.david, participants.maya, participants.sarah],
+            participants: [simParticipants.david, simParticipants.maya, simParticipants.sarah],
             overview: `Technical alignment on mobile client streaming transcription. The team decided to buffer 250ms chunks over WebSockets to reduce perceived transcription latency from 4.2s to 600ms on iOS/Android devices.`,
             keyDecisions: [
               'Adopt 250ms audio frame chunking with client-side Opus compression.',
@@ -55,7 +81,7 @@ export const SimulateMeetingModal: React.FC = () => {
               {
                 id: `act-sim-${Date.now()}-1`,
                 title: 'Benchmark 250ms Opus streaming over simulated 3G network conditions',
-                assignee: participants.sarah,
+                assignee: simParticipants.sarah,
                 completed: false,
                 timestamp: 120,
                 sourceQuote: "I will set up the network throttle harness and test Opus compression on poor connections tomorrow."
@@ -63,7 +89,7 @@ export const SimulateMeetingModal: React.FC = () => {
               {
                 id: `act-sim-${Date.now()}-2`,
                 title: 'Deliver mobile optimistic transcript scrolling component for React Native',
-                assignee: participants.maya,
+                assignee: simParticipants.maya,
                 completed: false,
                 timestamp: 410,
                 sourceQuote: "I'll package the optimistic scrolling hook so mobile can adopt the desktop behavior."
@@ -85,7 +111,7 @@ export const SimulateMeetingModal: React.FC = () => {
                 id: `ut-sim-1`,
                 speakerId: 'p-david',
                 speakerName: 'David Kim',
-                speakerAvatar: participants.david.avatar,
+                speakerAvatar: simParticipants.david.avatar,
                 startTime: 0,
                 endTime: 20,
                 text: "Thanks everyone for hopping on short notice. We need to tackle mobile transcription lag. On phones, seeing the transcript lag 4 seconds behind the speaker feels completely broken."
@@ -94,7 +120,7 @@ export const SimulateMeetingModal: React.FC = () => {
                 id: `ut-sim-2`,
                 speakerId: 'p-maya',
                 speakerName: 'Maya Patel',
-                speakerAvatar: participants.maya.avatar,
+                speakerAvatar: simParticipants.maya.avatar,
                 startTime: 22,
                 endTime: 65,
                 text: "Exactly. In our user testing, people look at the screen, don't see words appearing, and think the recording bot crashed. We need immediate visual feedback."
@@ -103,7 +129,7 @@ export const SimulateMeetingModal: React.FC = () => {
                 id: `ut-sim-3`,
                 speakerId: 'p-sarah',
                 speakerName: 'Sarah Chen',
-                speakerAvatar: participants.sarah.avatar,
+                speakerAvatar: simParticipants.sarah.avatar,
                 startTime: 68,
                 endTime: 140,
                 text: "We can switch from 2-second WAV chunks to 250ms Opus streaming over WebSocket. I will set up the network throttle harness and test Opus compression on poor connections tomorrow."
@@ -112,7 +138,7 @@ export const SimulateMeetingModal: React.FC = () => {
                 id: `ut-sim-4`,
                 speakerId: 'p-maya',
                 speakerName: 'Maya Patel',
-                speakerAvatar: participants.maya.avatar,
+                speakerAvatar: simParticipants.maya.avatar,
                 startTime: 390,
                 endTime: 440,
                 text: "I'll package the optimistic scrolling hook so mobile can adopt the desktop behavior and render partial sentences smoothly."
@@ -162,7 +188,7 @@ export const SimulateMeetingModal: React.FC = () => {
             <div>
               <h3>Capture & Transcribe Meeting</h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Simulate Fathom's live bot joining, recording, and generating notes
+                Simulate Meetwise live capture, recording, and outcome synthesis
               </p>
             </div>
           </div>
@@ -199,7 +225,7 @@ export const SimulateMeetingModal: React.FC = () => {
               </div>
 
               <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                💡 <em>This simulates Fathom's post-meeting intelligence pipeline: joining the call, transcribing conversational speech with speaker tags, extracting action items with quotes, and generating structured summaries.</em>
+                💡 <em>This simulates Meetwise's post-meeting intelligence pipeline: capturing audio, transcribing conversational speech with speaker tags, extracting action items with quotes, and generating structured summaries.</em>
               </div>
 
               <button

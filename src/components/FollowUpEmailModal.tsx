@@ -26,13 +26,14 @@ export const FollowUpEmailModal: React.FC<FollowUpEmailModalProps> = ({
   // Generate deterministic email content strictly from current meeting data
   const generateEmail = (m: Meeting, variant: number) => {
     // 1. To recipients: attendees
-    const recipients = m.participants.map((p) => `${p.name} <${p.email}>`).join(', ');
+    const participants = m.participants || [];
+    const recipients = participants.map((p) => `${p.name} <${p.email}>`).join(', ');
 
     // 2. Subject line
     const subject = `Follow-up: ${m.title} — Next Steps`;
 
     // 3. Attendee names for greeting
-    const firstNames = m.participants.map((p) => p.name.split(' ')[0]);
+    const firstNames = participants.map((p) => p.name.split(' ')[0]);
     let greeting = '';
     if (firstNames.length > 0) {
       greeting = `Hi ${firstNames.join(', ')},`;

@@ -26,7 +26,7 @@ export const TranscriptViewer: React.FC = () => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const filteredUtterances = activeMeeting.transcript.filter((u) => {
+  const filteredUtterances = (activeMeeting.transcript || []).filter((u) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (

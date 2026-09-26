@@ -1,86 +1,161 @@
-# Fathom AI Meeting Notetaker — Product Clone
+# Meetwise — Verified Meeting Intelligence Workspace
 
-A product-focused recreation of the core Fathom meeting-notetaking workflow, built as part of the 8x **“Rebuild a live product in 24 hours”** assignment.
+Meetwise is an enterprise meeting intelligence and post-meeting outcome workspace. Built around the core principle of **Traceable Evidence**, Meetwise extracts executive summaries, ratified decisions, committed action items, and unresolved open questions from spoken dialogue, grounding every outcome with verbatim quotes and deep-linked transcript timestamps.
 
-## Live Demo
+---
 
-**Deployed application:** https://fathom-ai-meeting-clone.vercel.app
+## Key Capabilities
 
-## Core Experience
+1. **Evidence Explorer**: Every decision, action item, and open question provides a dedicated Evidence Explorer panel displaying the speaker, exact timestamp, verbatim transcript quote, grounding confidence score, and "Why this appears" transparency criteria.
+2. **Meeting Intelligence Hierarchy**: Structured executive view distinguishing:
+   - **Executive Summary** (What happened)
+   - **Key Decisions** (What was decided)
+   - **Action Items** (What someone committed to)
+   - **Open Questions** (What remains unresolved)
+   - **Key Topics & Discussion Threads** (Progression)
+   - **Evidence & Grounding Coverage** (Audit metrics)
+3. **Ask Meetwise Grounded Assistant**: Conversational assistant strictly anchored to SQLite meeting records. Cites verifiable timestamps (`[03:10]`) that deep-link into playback and displays distinct evidence sources. Transparently displays an **Insufficient Evidence** card when questions cannot be answered from available meeting records without hallucinating.
+4. **Meeting Intake Pipeline**: 5-stage pipeline (Transcript Preparation → Context Analysis → Outcome Extraction → Evidence Grounding → SQLite Persistence) supporting curated audio/video templates and uploaded meeting files.
+5. **Cross-Meeting Global Search**: Instant parameterized database search (`⌘K`) across meetings, verbatim utterances, decisions, action items, open questions, and team members with one-click transcript deep-linking.
+6. **Personalized Workspace**: Individualized views for *My Actions*, *My Decisions*, *Open Questions*, and *My Meetings* with account switching and task completion tracking.
 
-* Meeting dashboard
-* Meeting playback experience
-* Synchronized transcript
-* Meeting summaries
-* Summary templates
-* Action items with evidence
-* Meeting Intelligence
-* Decisions and unresolved questions
-* Ask Fathom workflow
-* Highlights
-* Global search
-* Participant-aware sharing
-* Follow-up email generation
-* Meeting simulator
-* Long-meeting / 8-person experience
+---
 
-## Product Decisions
+## Architecture
 
-The implementation prioritizes the highest-value post-meeting workflows: understanding what happened, verifying decisions against the conversation, identifying actions, resolving open questions, searching across meetings, and communicating outcomes.
+Meetwise is designed with a real, connected backend architecture:
 
-### Deterministic Post-Meeting Intelligence
+```
+┌────────────────────────────────────────────────────────┐
+│              React 18 + TypeScript Frontend            │
+│  (Tailored Vanilla CSS design system, responsive UI)   │
+└───────────────────────────┬────────────────────────────┘
+                            │ HTTP JSON API (/api)
+┌───────────────────────────▼────────────────────────────┐
+│              Node.js + Express Backend Server          │
+│               (Port 3001, REST Architecture)           │
+└─────────────┬───────────────────────────┬──────────────┘
+              │                           │
+┌─────────────▼─────────────┐ ┌───────────▼──────────────┐
+│     SQLite Database       │ │ Modular Intelligence     │
+│   (better-sqlite3 disk)   │ │ Engine & Fallback Layer  │
+│  10 relational tables     │ │ (Local rule-based + LLM) │
+└───────────────────────────┘ └──────────────────────────┘
+```
 
-The prototype uses deterministic local synthesis and pre-indexed meeting data for summaries, decisions, action items, questions, Ask Fathom responses, and evidence citations.
+### Technology Stack
 
-This was a deliberate scope decision for the 24-hour assignment: it keeps the experience fast and reliable during evaluation while allowing the implementation to focus on the core product workflow rather than external API dependencies.
+* **Frontend**: React 18, TypeScript, Vite, Lucide Icons, Vanilla CSS design tokens (zero heavy UI framework dependencies).
+* **Backend**: Node.js, Express, TypeScript (`tsx`).
+* **Database**: SQLite via `better-sqlite3` with persistent disk storage (`server/meetwise.db`), write-ahead logging (WAL), foreign key constraints, and atomic transactions.
+* **API Communication**: Native HTTP `fetch` via a dedicated typed client (`src/api/client.ts`), proxied through Vite in development.
+* **State Management**: React Context (`MeetingContext.tsx`) maintaining in-memory caching and real-time synchronization with SQLite backend endpoints.
 
-### Traceable Evidence
+---
 
-Critical takeaways, decisions, open questions, and action items are linked to exact timestamps in the transcript and playback experience.
+## Database Schema
 
-This allows users to move from an insight directly to the underlying conversation and verify the information.
+Meetwise persists all workspace data in SQLite across 10 relational tables:
 
-### Simulated Capture
+* `meetings`: Core meeting metadata, duration, summary overview, template configurations, and tags.
+* `participants`: Workspace team members and attendees (name, email, role, avatar).
+* `meeting_participants`: Many-to-many relationship linking participants to meetings.
+* `transcript_utterances`: Sequential dialogue lines with millisecond start/end timestamps, speaker attributions, and text.
+* `action_items`: Explicit commitments, assignee foreign keys, completion states, timestamps, and verbatim source quotes.
+* `decisions`: Consensus resolutions, timestamps, sequence ordering, and grounding confidence.
+* `open_questions`: Unresolved inquiries, speaker attributions, timestamps, and conversational context.
+* `highlights`: Key moments and topical segments with start/end time ranges.
+* `topic_discussions`: Agenda themes and structured discussion bullets.
+* `shares`: Share recipients, permissions, and sharing timestamps.
 
-The recording and meeting-ingest layer is simulated where appropriate, as permitted by the assignment. This allowed the implementation to focus on the post-meeting intelligence and collaboration experience.
+---
 
-## How to Explore
+## Intelligence Layer
 
-A recommended flow:
+Meetwise features a provider-independent intelligence architecture:
 
-1. Open the dashboard and select a meeting.
-2. Explore synchronized playback and transcript.
-3. Review the meeting summary and switch templates.
-4. Inspect action items and jump to their evidence.
-5. Explore Meeting Intelligence and trace decisions to the transcript.
-6. Try Ask Fathom and global search.
-7. Generate a follow-up email.
-8. Try participant-aware sharing.
-9. Explore the seeded 8-person, long-meeting experience.
+1. **Local Deterministic Provider (Default / Offline)**:
+   - Operates completely offline without external API keys or network volatility.
+   - Extracts explicit commitments, verifies proposal reversals, checks whether questions were answered in subsequent dialogue, and calculates grounding confidence.
+   - Powers Ask Meetwise with deterministic transcript keyword scanning and semantic intent matching.
+2. **Optional LLM Provider**:
+   - Configurable via server-side environment variables (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`).
+   - Automatically detected by the server; gracefully falls back to the local deterministic provider if unconfigured or rate-limited.
+   - API keys remain exclusively on the server and are never exposed to the client.
 
-## Tech Stack
+---
 
-* React
-* TypeScript
-* Vite
-* CSS
-* LocalStorage for persistence
+## Getting Started
 
-## Running Locally
+### Prerequisites
+
+* Node.js 18+ (tested on Node 20 & 22)
+* npm 9+
+
+### Installation
+
+Clone the repository and install dependencies:
 
 ```bash
+git clone <repo-url>
+cd fanthom_clone
 npm install
+```
+
+### Running Locally
+
+To run both the backend API server and frontend development server concurrently:
+
+**Terminal 1 (Backend Server — Port 3001):**
+```bash
+npm run dev:backend
+```
+
+**Terminal 2 (Frontend Client — Port 3000):**
+```bash
 npm run dev
 ```
 
-To validate TypeScript compilation and create a production build:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Database Initialization & Seeding
+
+The SQLite database automatically initializes its schema on server startup if the database file does not exist.
+
+To re-seed the database with the initial benchmark meetings:
+
+```bash
+npm run db:seed
+```
+
+### Production Build & Type Checking
+
+To validate TypeScript compilation and produce an optimized production bundle:
 
 ```bash
 npm run build
 ```
 
-## Assignment
+---
 
-Built for the 8x live-product reconstruction assignment:
+## Configuration & Environment Variables
 
-**“Rebuild a live product in 24 hours.”**
+Create an optional `.env` file in the project root for custom configuration:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `PORT` | Backend Express server port | `3001` |
+| `DB_PATH` | Path to persistent SQLite database file | `server/meetwise.db` |
+| `OPENAI_API_KEY` | Optional OpenAI key for LLM intelligence (server-side only) | *(empty — uses local provider)* |
+| `GEMINI_API_KEY` | Optional Google Gemini key for LLM intelligence (server-side only) | *(empty — uses local provider)* |
+| `ANTHROPIC_API_KEY` | Optional Anthropic key for LLM intelligence (server-side only) | *(empty — uses local provider)* |
+
+> **Note:** LLM API keys are read exclusively by the backend server and are never exposed to the frontend client. The application runs fully offline using the local deterministic intelligence provider when no API keys are configured.
+
+---
+
+## Current Scope & Limitations
+
+* **Audio/Video Playback**: Media player runs in simulated playback mode synchronized with transcript timestamps; real-time hardware microphone recording is not tied to an external Zoom/Google Meet bot.
+* **Authentication**: Workspace login utilizes single-click profile switching and work-email matching across registered workspace accounts without external OAuth credentials.
+* **Deterministic Intelligence**: When running without external API keys, meeting intelligence extraction uses rule-based heuristic patterns designed to pass adversarial tests (tentative remarks, reversed decisions, and answered inquiries).

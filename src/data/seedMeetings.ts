@@ -4,7 +4,7 @@ export const participants: Record<string, Participant> = {
   david: {
     id: 'p-david',
     name: 'David Kim',
-    email: 'david@fathom.internal',
+    email: 'david@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     role: 'VP Product',
     color: '#6366f1'
@@ -12,7 +12,7 @@ export const participants: Record<string, Participant> = {
   sarah: {
     id: 'p-sarah',
     name: 'Sarah Chen',
-    email: 'sarah.chen@fathom.internal',
+    email: 'sarah.chen@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
     role: 'Staff ML Engineer',
     color: '#ec4899'
@@ -20,7 +20,7 @@ export const participants: Record<string, Participant> = {
   elena: {
     id: 'p-elena',
     name: 'Elena Rostova',
-    email: 'elena.r@fathom.internal',
+    email: 'elena.r@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     role: 'Head of QA & Evals',
     color: '#10b981'
@@ -28,7 +28,7 @@ export const participants: Record<string, Participant> = {
   marcus: {
     id: 'p-marcus',
     name: 'Marcus Vance',
-    email: 'marcus.v@fathom.internal',
+    email: 'marcus.v@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     role: 'Principal Designer',
     color: '#f59e0b'
@@ -36,7 +36,7 @@ export const participants: Record<string, Participant> = {
   maya: {
     id: 'p-maya',
     name: 'Maya Patel',
-    email: 'maya.patel@fathom.internal',
+    email: 'maya.patel@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     role: 'Frontend Lead',
     color: '#8b5cf6'
@@ -52,7 +52,7 @@ export const participants: Record<string, Participant> = {
   rachel: {
     id: 'p-rachel',
     name: 'Rachel Adams',
-    email: 'rachel.a@fathom.internal',
+    email: 'rachel.a@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     role: 'Enterprise AE',
     color: '#14b8a6'
@@ -60,7 +60,7 @@ export const participants: Record<string, Participant> = {
   alex: {
     id: 'p-alex',
     name: 'Alex Mercer',
-    email: 'alex.m@fathom.internal',
+    email: 'alex.m@meetwise.internal',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
     role: 'Staff Infrastructure Architect',
     color: '#3b82f6'
@@ -289,7 +289,7 @@ export const seedMeetings: Meeting[] = [
     ],
     shares: [
       {
-        email: 'sarah.chen@fathom.internal',
+        email: 'sarah.chen@meetwise.internal',
         name: 'Sarah Chen',
         avatar: participants.sarah.avatar,
         isAttendee: true,
@@ -297,7 +297,7 @@ export const seedMeetings: Meeting[] = [
         revoked: false
       },
       {
-        email: 'elena.r@fathom.internal',
+        email: 'elena.r@meetwise.internal',
         name: 'Elena Rostova',
         avatar: participants.elena.avatar,
         isAttendee: true,
@@ -383,7 +383,7 @@ export const seedMeetings: Meeting[] = [
     date: '2026-09-19T10:00:00Z',
     durationSeconds: 2100, // 35 mins
     participants: [participants.david, participants.marcus, participants.maya],
-    overview: 'Design and UX review tackling top user friction points in Fathom: eliminating generic "Impromptu Meeting" titles, implementing participant-aware sharing with undo capabilities, and providing direct transcript-to-action-item traceability.',
+    overview: 'Design and UX review tackling top user friction points in Meetwise: eliminating generic "Impromptu Meeting" titles, implementing participant-aware sharing with undo capabilities, and providing direct transcript-to-action-item traceability.',
     keyDecisions: [
       'Replace generic Google Meet titles with contextual smart titles generated from the initial 3 minutes of conversation.',
       'Surface actual meeting attendees at the top of the share modal for 1-click sharing.',
@@ -509,7 +509,7 @@ export const seedMeetings: Meeting[] = [
         speakerAvatar: participants.david.avatar,
         startTime: 0,
         endTime: 25,
-        text: "Thanks for joining. We recently audited user complaints on Fathom and found three huge friction points: generic Impromptu meeting titles, clumsy sharing flows, and lack of trust in generated action items."
+        text: "Thanks for joining. We recently audited user complaints on Meetwise and found three huge friction points: generic Impromptu meeting titles, clumsy sharing flows, and lack of trust in generated action items."
       },
       {
         id: 'ut-202',
@@ -577,7 +577,7 @@ export const seedMeetings: Meeting[] = [
     ],
     shares: [
       {
-        email: 'marcus.v@fathom.internal',
+        email: 'marcus.v@meetwise.internal',
         name: 'Marcus Vance',
         avatar: participants.marcus.avatar,
         isAttendee: true,
@@ -585,7 +585,7 @@ export const seedMeetings: Meeting[] = [
         revoked: false
       },
       {
-        email: 'maya.patel@fathom.internal',
+        email: 'maya.patel@meetwise.internal',
         name: 'Maya Patel',
         avatar: participants.maya.avatar,
         isAttendee: true,
@@ -599,7 +599,7 @@ export const seedMeetings: Meeting[] = [
         key: 'executive',
         name: 'Executive Summary',
         description: 'High-level synthesis focused on key business decisions, metrics, and outcomes.',
-        overview: 'Design and UX review tackling top user friction points in Fathom: eliminating generic "Impromptu Meeting" titles, implementing participant-aware sharing with undo capabilities, and providing direct transcript-to-action-item traceability.',
+        overview: 'Design and UX review tackling top user friction points in Meetwise: eliminating generic "Impromptu Meeting" titles, implementing participant-aware sharing with undo capabilities, and providing direct transcript-to-action-item traceability.',
         sections: [
           {
             heading: 'Key Product Decisions',
@@ -630,7 +630,7 @@ export const seedMeetings: Meeting[] = [
         key: 'customer',
         name: 'Customer & Partner Facing',
         description: 'Clean, sanitized summary suitable for sharing directly with external clients.',
-        overview: 'Upcoming usability and privacy updates coming to Fathom meeting workspaces.',
+        overview: 'Upcoming usability and privacy updates coming to Meetwise meeting workspaces.',
         sections: [
           {
             heading: 'User Experience Improvements',
@@ -653,14 +653,14 @@ export const seedMeetings: Meeting[] = [
   {
     id: 'acme-pilot-advisory',
     title: 'Enterprise Customer Advisory: Acme Corp & SmartEval Pilot',
-    originalCalendarTitle: 'Acme Corp / Fathom Partnership Sync',
+    originalCalendarTitle: 'Acme Corp / Meetwise Partnership Sync',
     date: '2026-09-17T16:00:00Z',
     durationSeconds: 2520, // 42 mins
     participants: [participants.david, participants.rachel, participants.thomas],
     overview: 'Executive partnership call with Acme Corp CTO Thomas Wright reviewing their 50-seat SmartEval enterprise pilot. Thomas confirmed agreement to proceed pending SOC2 Type II report verification and clarification on on-prem evaluation data privacy.',
     keyDecisions: [
       'Acme Corp will commence a 50-seat pilot of SmartEval across their ML and Data engineering teams on October 1st.',
-      'Fathom will provide zero-data-retention guarantees for all transcript audio and evaluation logs.',
+      'Meetwise will provide zero-data-retention guarantees for all transcript audio and evaluation logs.',
       'Rachel will send revised enterprise agreement with customized 99.9% uptime SLA.'
     ],
     keyDecisionDetails: [
@@ -671,7 +671,7 @@ export const seedMeetings: Meeting[] = [
       },
       {
         id: 'dec-3-2',
-        text: 'Fathom will provide zero-data-retention guarantees on all transcript audio and evaluation logs',
+        text: 'Meetwise will provide zero-data-retention guarantees on all transcript audio and evaluation logs',
         timestamp: 820
       },
       {
@@ -758,7 +758,7 @@ export const seedMeetings: Meeting[] = [
         startTime: 780,
         endTime: 870,
         speakerName: 'David Kim',
-        summary: 'Fathom confirms enterprise calls and transcripts are never stored on external LLM inference servers.',
+        summary: 'Meetwise confirms enterprise calls and transcripts are never stored on external LLM inference servers.',
         tag: 'Technical Architecture'
       }
     ],
@@ -846,7 +846,7 @@ export const seedMeetings: Meeting[] = [
         revoked: false
       },
       {
-        email: 'rachel.a@fathom.internal',
+        email: 'rachel.a@meetwise.internal',
         name: 'Rachel Adams',
         avatar: participants.rachel.avatar,
         isAttendee: true,

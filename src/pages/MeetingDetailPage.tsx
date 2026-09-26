@@ -4,25 +4,51 @@ import { MediaPlayer } from '../components/MediaPlayer';
 import { SummaryViewer } from '../components/SummaryViewer';
 import { ActionItemsList } from '../components/ActionItemsList';
 import { TranscriptViewer } from '../components/TranscriptViewer';
-import { AskFathomChat } from '../components/AskFathomChat';
+import { AskMeetwiseChat } from '../components/AskMeetwiseChat';
 import { HighlightsViewer } from '../components/HighlightsViewer';
 import { FollowUpEmailModal } from '../components/FollowUpEmailModal';
-import { ArrowLeft, Share2, Calendar, Clock, Sparkles, CheckSquare, MessageSquare, Scissors, FileText, Mail } from 'lucide-react';
+import { MeetingDetailSkeleton } from '../components/SkeletonLoaders';
+import { ArrowLeft, Share2, Calendar, Clock, CheckSquare, MessageSquare, Scissors, FileText, Mail, Loader2, HelpCircle } from 'lucide-react';
 
 export const MeetingDetailPage: React.FC = () => {
   const {
     activeMeeting,
     setActiveMeetingId,
     setIsShareModalOpen,
-    updateMeetingTitle
+    updateMeetingTitle,
+    isLoadingDetail,
+    activeDetailTab,
+    setActiveDetailTab,
+    currentUser
   } = useMeeting();
 
-  const [activeTab, setActiveTab] = useState<'summary' | 'actions' | 'transcript' | 'ask' | 'highlights'>('summary');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(activeMeeting?.title || '');
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
-  if (!activeMeeting) return null;
+  if (!activeMeeting) {
+    return (
+      <div className="meeting-detail-view" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '16px' }}>
+        <button className="btn-secondary" onClick={() => setActiveMeetingId(null)}>
+          <ArrowLeft size={16} style={{ marginRight: 6, display: 'inline' }} />
+          Back to Meetings
+        </button>
+        <p style={{ color: 'var(--text-muted)' }}>Meeting not found.</p>
+      </div>
+    );
+  }
+
+  if (isLoadingDetail && (!activeMeeting.transcript || activeMeeting.transcript.length === 0)) {
+    return (
+      <div className="meeting-detail-view">
+        <MeetingDetailSkeleton />
+      </div>
+    );
+  }
+
+  const actionItems = activeMeeting.actionItems || [];
+  const transcript = activeMeeting.transcript || [];
+  const highlights = activeMeeting.highlights || [];
 
   const formattedDate = new Date(activeMeeting.date).toLocaleDateString('en-US', {
     weekday: 'short',
@@ -31,8 +57,14 @@ export const MeetingDetailPage: React.FC = () => {
     year: 'numeric'
   });
 
-  const durationMin = Math.round(activeMeeting.durationSeconds / 60);
-  const completedActions = activeMeeting.actionItems.filter((a) => a.completed).length;
+  const durationMin = Math.round((activeMeeting.durationSeconds || 0) / 60);
+  const completedActions = actionItems.filter((a) => a.completed).length;
+
+  const myActions = actionItems.filter((a) => a.assignee?.id === currentUser?.id);
+  const attended = (activeMeeting.participants || []).some((p) => p.id === currentUser?.id);
+  const spokeCount = transcript.filter(
+    (u) => u.speakerId === currentUser?.id || (currentUser?.name && u.speakerName?.toLowerCase().includes(currentUser.name.toLowerCase()))
+  ).length;
 
   const handleTitleBlur = () => {
     setEditingTitle(false);
@@ -100,8 +132,8 @@ export const MeetingDetailPage: React.FC = () => {
             title="Generate follow-up email from meeting intelligence"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <Mail size={15} />
-            <span>✉ Follow-up Email</span>
+            <Mail size={14} />
+            <span>Follow-up Email</span>
           </button>
 
           <button
@@ -109,11 +141,49 @@ export const MeetingDetailPage: React.FC = () => {
             onClick={() => setIsShareModalOpen(true)}
             title="Share meeting with attendees or colleagues"
           >
-            <Share2 size={15} />
+            <Share2 size={14} />
             <span>Share</span>
           </button>
         </div>
       </header>
+
+      {/* User Context Banner: Your involvement */}
+      {(myActions.length > 0 || attended || spokeCount > 0) && (
+        <div
+          style={{
+            background: 'rgba(37, 99, 235, 0.05)',
+            borderBottom: '1px solid #1e283b',
+            padding: '7px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.8rem',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: '#64748b', fontWeight: 500 }}>Your involvement:</span>
+            <span style={{ color: '#34d399', fontWeight: 600 }}>
+              {myActions.length} action{myActions.length !== 1 ? 's' : ''}
+            </span>
+            <span style={{ color: '#475569' }}>·</span>
+            <span style={{ color: '#38bdf8', fontWeight: 500 }}>
+              {activeMeeting.keyDecisions?.length || activeMeeting.keyDecisionDetails?.length || 0} decision{(activeMeeting.keyDecisions?.length || activeMeeting.keyDecisionDetails?.length || 0) !== 1 ? 's' : ''}
+            </span>
+            {attended && (
+              <>
+                <span style={{ color: '#475569' }}>·</span>
+                <span style={{ color: '#93c5fd', fontWeight: 500 }}>attended</span>
+              </>
+            )}
+          </div>
+
+          <div style={{ color: '#64748b', fontSize: '0.74rem' }}>
+            Originating discussion for your assigned actions and team agreements.
+          </div>
+        </div>
+      )}
 
       {/* Main Split Workspace */}
       <div className="detail-workspace">
@@ -125,60 +195,60 @@ export const MeetingDetailPage: React.FC = () => {
           {/* Tabs Header */}
           <div className="intel-tabs-bar">
             <button
-              className={`intel-tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
-              onClick={() => setActiveTab('summary')}
+              className={`intel-tab-btn ${activeDetailTab === 'summary' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('summary')}
             >
               <FileText size={15} />
               <span>Summary</span>
             </button>
 
             <button
-              className={`intel-tab-btn ${activeTab === 'actions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('actions')}
+              className={`intel-tab-btn ${activeDetailTab === 'actions' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('actions')}
             >
               <CheckSquare size={15} />
               <span>Action Items</span>
               <span className="tab-badge">
-                {completedActions}/{activeMeeting.actionItems.length}
+                {completedActions}/{actionItems.length}
               </span>
             </button>
 
             <button
-              className={`intel-tab-btn ${activeTab === 'transcript' ? 'active' : ''}`}
-              onClick={() => setActiveTab('transcript')}
+              className={`intel-tab-btn ${activeDetailTab === 'transcript' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('transcript')}
             >
               <MessageSquare size={15} />
               <span>Transcript</span>
-              <span className="tab-badge">{activeMeeting.transcript.length}</span>
+              <span className="tab-badge">{transcript.length}</span>
             </button>
 
             <button
-              className={`intel-tab-btn ${activeTab === 'ask' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ask')}
+              className={`intel-tab-btn ${activeDetailTab === 'ask' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('ask')}
             >
-              <Sparkles size={15} style={{ color: 'var(--accent-primary)' }} />
-              <span>Ask Fathom</span>
+              <HelpCircle size={15} />
+              <span>Ask Meetwise</span>
             </button>
 
             <button
-              className={`intel-tab-btn ${activeTab === 'highlights' ? 'active' : ''}`}
-              onClick={() => setActiveTab('highlights')}
+              className={`intel-tab-btn ${activeDetailTab === 'highlights' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('highlights')}
             >
               <Scissors size={15} />
               <span>Highlights</span>
-              <span className="tab-badge">{activeMeeting.highlights.length}</span>
+              <span className="tab-badge">{highlights.length}</span>
             </button>
           </div>
 
           {/* Tab Content Body */}
           <div className="intel-body-scroll">
-            {activeTab === 'summary' && <SummaryViewer />}
-            {activeTab === 'actions' && (
-              <ActionItemsList onOpenTranscript={() => setActiveTab('transcript')} />
+            {activeDetailTab === 'summary' && <SummaryViewer />}
+            {activeDetailTab === 'actions' && (
+              <ActionItemsList onOpenTranscript={() => setActiveDetailTab('transcript')} />
             )}
-            {activeTab === 'transcript' && <TranscriptViewer />}
-            {activeTab === 'ask' && <AskFathomChat />}
-            {activeTab === 'highlights' && <HighlightsViewer />}
+            {activeDetailTab === 'transcript' && <TranscriptViewer />}
+            {activeDetailTab === 'ask' && <AskMeetwiseChat />}
+            {activeDetailTab === 'highlights' && <HighlightsViewer />}
           </div>
         </div>
       </div>

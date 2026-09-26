@@ -16,8 +16,15 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
     year: 'numeric'
   });
 
-  const durationMin = Math.round(meeting.durationSeconds / 60);
-  const completedActions = meeting.actionItems.filter((a) => a.completed).length;
+  const durationMin = Math.round((meeting.durationSeconds || 0) / 60);
+  const actionItems = meeting.actionItems || [];
+  const stats = (meeting as any).stats;
+  const totalActions = actionItems.length || stats?.totalActions || 0;
+  const completedActions = actionItems.length
+    ? actionItems.filter((a) => a.completed).length
+    : (stats?.completedActions || 0);
+  const participants = meeting.participants || [];
+  const tags = meeting.tags || [];
 
   const handleCardClick = () => {
     setActiveMeetingId(meeting.id);
@@ -37,10 +44,10 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
             {durationMin} mins
           </span>
         </div>
-        {meeting.actionItems.length > 0 && (
+        {totalActions > 0 && (
           <span className="action-count-badge">
             <CheckSquare size={12} />
-            {completedActions}/{meeting.actionItems.length} Actions
+            {completedActions}/{totalActions} Actions
           </span>
         )}
       </div>
@@ -57,7 +64,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
 
       <div className="card-participants">
         <div className="avatar-stack">
-          {meeting.participants.map((p) => (
+          {participants.map((p) => (
             <img
               key={p.id}
               src={p.avatar}
@@ -68,7 +75,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
         </div>
 
         <div className="card-badge-summary">
-          {meeting.tags.slice(0, 2).map((t) => (
+          {tags.slice(0, 2).map((t) => (
             <span key={t} className="meta-pill" style={{ fontSize: '0.7rem' }}>
               #{t}
             </span>
