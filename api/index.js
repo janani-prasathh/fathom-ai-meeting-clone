@@ -3003,18 +3003,25 @@ var PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => {
+  if (req.url.startsWith("/api/index.js")) {
+    req.url = req.url.replace("/api/index.js", "") || "/";
+  }
+  next();
+});
+app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
     const duration = Date.now() - start;
-    console.log(`[API] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${duration}ms)`);
+    console.log(`[API] ${req.method} ${req.originalUrl} (url: ${req.url}) -> ${res.statusCode} (${duration}ms)`);
   });
   next();
 });
-app.get(["/", "/api"], (req, res) => {
+app.get(["/", "/api", "/health"], (req, res) => {
   res.json({
     status: "ok",
     service: "meetwise-backend",
-    message: "Meetwise API root"
+    runtime: "pure-in-memory",
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
 app.get("/api/health", (req, res) => {

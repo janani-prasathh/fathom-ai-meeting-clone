@@ -27,12 +27,20 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Handle Vercel rewrite URL normalization
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.url.startsWith('/api/index.js')) {
+    req.url = req.url.replace('/api/index.js', '') || '/';
+  }
+  next();
+});
+
 // Request logger
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`[API] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${duration}ms)`);
+    console.log(`[API] ${req.method} ${req.originalUrl} (url: ${req.url}) -> ${res.statusCode} (${duration}ms)`);
   });
   next();
 });
@@ -40,11 +48,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // ==========================================
 // 0. API Root Handlers
 // ==========================================
-app.get(['/', '/api'], (req: Request, res: Response) => {
+app.get(['/', '/api', '/health'], (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'meetwise-backend',
-    message: 'Meetwise API root'
+    runtime: 'pure-in-memory',
+    timestamp: new Date().toISOString()
   });
 });
 
