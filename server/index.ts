@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { db, getFullMeetingById, initDatabase } from './db.ts';
+import { seedDatabase } from './seed.ts';
 import {
   INTAKE_TEMPLATES,
   buildMeetingFromTemplate,
@@ -15,8 +16,17 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize database schema
+// Initialize database schema and ensure seed data exists
 initDatabase();
+try {
+  const meetingCount = (db.prepare('SELECT COUNT(*) as count FROM meetings').get() as any)?.count || 0;
+  if (meetingCount === 0) {
+    console.log('Database empty on startup; running seedDatabase()...');
+    seedDatabase();
+  }
+} catch (err) {
+  console.warn('Auto-seed check encountered error:', err);
+}
 
 // Middleware
 app.use(cors());

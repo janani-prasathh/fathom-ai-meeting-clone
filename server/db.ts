@@ -6,8 +6,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database path can be overridden by environment variable
-export const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'meetwise.db');
+// Database path: on Vercel use /tmp/meetwise.db which is writable in serverless environments
+export const DB_PATH = process.env.DB_PATH || (
+  process.env.VERCEL ? path.join('/tmp', 'meetwise.db') : path.join(__dirname, 'meetwise.db')
+);
 
 // Ensure directory exists
 const dbDir = path.dirname(DB_PATH);
