@@ -1776,10 +1776,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start listening if run directly
-export const server = app.listen(PORT, () => {
-  console.log(`🚀 Meetwise API server running on http://localhost:${PORT}`);
-  console.log(`   Health check: http://localhost:${PORT}/api/health`);
-  console.log(`   Meetings list: http://localhost:${PORT}/api/meetings`);
-});
+export const server = process.env.VERCEL
+  ? undefined
+  : app.listen(PORT, () => {
+      console.log(`🚀 Meetwise API server running on http://localhost:${PORT}`);
+      console.log(`   Health check: http://localhost:${PORT}/api/health`);
+      console.log(`   Meetings list: http://localhost:${PORT}/api/meetings`);
+    });
 
 export default app;
