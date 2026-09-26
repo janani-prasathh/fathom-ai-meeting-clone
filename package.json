@@ -9,7 +9,7 @@
     "dev:backend": "tsx watch server/index.ts",
     "server": "tsx server/index.ts",
     "db:seed": "tsx server/seed.ts",
-    "build": "tsc && vite build && esbuild api/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=api/index.js --external:better-sqlite3",
+    "build": "tsc && vite build && esbuild server/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=api/index.js --external:better-sqlite3",
     "preview": "vite preview"
   },
   "dependencies": {

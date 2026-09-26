@@ -29628,11 +29628,9 @@ if (!process.env.VERCEL) {
   });
 }
 var server_default = app;
-
-// api/index.ts
-var api_default = server_default;
 export {
-  api_default as default
+  server_default as default,
+  saveMeetingToDatabase
 };
 /*! Bundled license information:
 
