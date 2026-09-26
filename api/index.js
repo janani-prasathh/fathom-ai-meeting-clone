@@ -24839,27 +24839,37 @@ var import_cors = __toESM(require_lib3(), 1);
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
+var require2 = createRequire(import.meta.url);
 var DB_PATH = process.env.DB_PATH || (process.env.VERCEL ? path.join("/tmp", "meetwise.db") : path.join(__dirname, "meetwise.db"));
 var db = null;
-if (!process.env.VERCEL) {
-  try {
-    const Database = (await import("better-sqlite3")).default;
-    const dbDir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-    db = new Database(DB_PATH);
-    db.pragma("foreign_keys = ON");
-    db.pragma("journal_mode = WAL");
-  } catch (err) {
-    console.warn("SQLite initialization skipped or failed:", err);
+function getDb() {
+  if (process.env.VERCEL) {
+    return null;
   }
+  if (!db) {
+    try {
+      const Database = require2("better-sqlite3");
+      const dbDir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+      db = new Database(DB_PATH);
+      db.pragma("foreign_keys = ON");
+      db.pragma("journal_mode = WAL");
+    } catch (err) {
+      console.warn("SQLite initialization skipped or failed:", err);
+    }
+  }
+  return db;
 }
 function initDatabase() {
-  if (!db) return;
-  db.exec(`
+  if (process.env.VERCEL) return;
+  const database = getDb();
+  if (!database) return;
+  database.exec(`
     CREATE TABLE IF NOT EXISTS participants (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -24973,9 +24983,9 @@ function initDatabase() {
   `);
   const safeAddColumn = (table, column, def) => {
     try {
-      const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+      const cols = database.prepare(`PRAGMA table_info(${table})`).all();
       if (!cols.some((c) => c.name === column)) {
-        db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
+        database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
       }
     } catch {
     }
@@ -24989,7 +24999,9 @@ function initDatabase() {
   safeAddColumn("open_questions", "confidence", "REAL DEFAULT 1.0");
   safeAddColumn("open_questions", "source_utterance_id", "TEXT");
 }
-initDatabase();
+if (!process.env.VERCEL) {
+  initDatabase();
+}
 function getFullMeetingById(id) {
   const meetingRow = db.prepare(`SELECT * FROM meetings WHERE id = ?`).get(id);
   if (!meetingRow) return null;

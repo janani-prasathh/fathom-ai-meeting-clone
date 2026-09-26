@@ -2,8 +2,11 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
+import { createRequire } from 'module';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 // Database path: on Vercel, SQLite is bypassed in favor of pure in-memory store
 export const DB_PATH = process.env.DB_PATH || (
@@ -12,27 +15,36 @@ export const DB_PATH = process.env.DB_PATH || (
 
 // Lazily instantiate database only if not running in Vercel serverless environment
 export let db: any = null;
-if (!process.env.VERCEL) {
-  try {
-    const Database = (await import('better-sqlite3')).default;
-    const dbDir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-    db = new Database(DB_PATH);
-    db.pragma('foreign_keys = ON');
-    db.pragma('journal_mode = WAL');
-  } catch (err) {
-    console.warn('SQLite initialization skipped or failed:', err);
+
+export function getDb(): any {
+  if (process.env.VERCEL) {
+    return null;
   }
+  if (!db) {
+    try {
+      const Database = require('better-sqlite3');
+      const dbDir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+      db = new Database(DB_PATH);
+      db.pragma('foreign_keys = ON');
+      db.pragma('journal_mode = WAL');
+    } catch (err) {
+      console.warn('SQLite initialization skipped or failed:', err);
+    }
+  }
+  return db;
 }
 
 /**
  * Initialize all database tables and indexes.
  */
 export function initDatabase() {
-  if (!db) return;
-  db.exec(`
+  if (process.env.VERCEL) return;
+  const database = getDb();
+  if (!database) return;
+  database.exec(`
     CREATE TABLE IF NOT EXISTS participants (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -148,9 +160,9 @@ export function initDatabase() {
   // Safe Column Migrations for Grounding Metadata
   const safeAddColumn = (table: string, column: string, def: string) => {
     try {
-      const cols = db.prepare(`PRAGMA table_info(${table})`).all() as any[];
+      const cols = database.prepare(`PRAGMA table_info(${table})`).all() as any[];
       if (!cols.some(c => c.name === column)) {
-        db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
+        database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
       }
     } catch {
       // ignore if already added
@@ -169,8 +181,9 @@ export function initDatabase() {
   safeAddColumn('open_questions', 'source_utterance_id', 'TEXT');
 }
 
-// Automatically initialize schema on module import
-initDatabase();
+if (!process.env.VERCEL) {
+  initDatabase();
+}
 
 /**
  * Helper to fetch a complete Meeting object matching the TypeScript definition in src/types.ts
