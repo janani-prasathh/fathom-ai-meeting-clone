@@ -19425,7 +19425,7 @@ var require_view = __commonJS({
     "use strict";
     var debug = require_src()("express:view");
     var path2 = __require("node:path");
-    var fs2 = __require("node:fs");
+    var fs = __require("node:fs");
     var dirname = path2.dirname;
     var basename = path2.basename;
     var extname = path2.extname;
@@ -19505,7 +19505,7 @@ var require_view = __commonJS({
     function tryStat(path3) {
       debug('stat "%s"', path3);
       try {
-        return fs2.statSync(path3);
+        return fs.statSync(path3);
       } catch (e) {
         return void 0;
       }
@@ -23386,7 +23386,7 @@ var require_send = __commonJS({
     var escapeHtml = require_escape_html();
     var etag = require_etag();
     var fresh = require_fresh();
-    var fs2 = __require("fs");
+    var fs = __require("fs");
     var mime = require_mime_types();
     var ms = require_ms();
     var onFinished = require_on_finished();
@@ -23668,7 +23668,7 @@ var require_send = __commonJS({
       var i = 0;
       var self = this;
       debug('stat "%s"', path3);
-      fs2.stat(path3, function onstat(err, stat) {
+      fs.stat(path3, function onstat(err, stat) {
         var pathEndsWithSep = path3[path3.length - 1] === sep;
         if (err && err.code === "ENOENT" && !extname(path3) && !pathEndsWithSep) {
           return next(err);
@@ -23685,7 +23685,7 @@ var require_send = __commonJS({
         }
         var p = path3 + "." + self._extensions[i++];
         debug('stat "%s"', p);
-        fs2.stat(p, function(err2, stat) {
+        fs.stat(p, function(err2, stat) {
           if (err2) return next(err2);
           if (stat.isDirectory()) return next();
           self.emit("file", p, stat);
@@ -23703,7 +23703,7 @@ var require_send = __commonJS({
         }
         var p = join(path3, self._index[i]);
         debug('stat "%s"', p);
-        fs2.stat(p, function(err2, stat) {
+        fs.stat(p, function(err2, stat) {
           if (err2) return next(err2);
           if (stat.isDirectory()) return next();
           self.emit("file", p, stat);
@@ -23715,7 +23715,7 @@ var require_send = __commonJS({
     SendStream.prototype.stream = function stream(path3, options) {
       var self = this;
       var res = this.res;
-      var stream2 = fs2.createReadStream(path3, options);
+      var stream2 = fs.createReadStream(path3, options);
       this.emit("stream", stream2);
       stream2.pipe(res);
       function cleanup() {
@@ -24836,14 +24836,7 @@ var import_express = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 
 // server/db.ts
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import { createRequire } from "module";
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
-var require2 = createRequire(import.meta.url);
-var DB_PATH = process.env.DB_PATH || (process.env.VERCEL ? path.join("/tmp", "meetwise.db") : path.join(__dirname, "meetwise.db"));
+var DB_PATH = process.env.DB_PATH || path.join("/tmp", "meetwise.db");
 var db = null;
 function getDb() {
   if (process.env.VERCEL) {
@@ -24851,11 +24844,8 @@ function getDb() {
   }
   if (!db) {
     try {
-      const Database = require2("better-sqlite3");
-      const dbDir = path.dirname(DB_PATH);
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-      }
+      const pkg = "better-sqlite3";
+      const Database = eval("require")(pkg);
       db = new Database(DB_PATH);
       db.pragma("foreign_keys = ON");
       db.pragma("journal_mode = WAL");

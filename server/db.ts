@@ -1,17 +1,5 @@
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-import { createRequire } from 'module';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
-
 // Database path: on Vercel, SQLite is bypassed in favor of pure in-memory store
-export const DB_PATH = process.env.DB_PATH || (
-  process.env.VERCEL ? path.join('/tmp', 'meetwise.db') : path.join(__dirname, 'meetwise.db')
-);
+export const DB_PATH = process.env.DB_PATH || path.join('/tmp', 'meetwise.db');
 
 // Lazily instantiate database only if not running in Vercel serverless environment
 export let db: any = null;
@@ -22,11 +10,9 @@ export function getDb(): any {
   }
   if (!db) {
     try {
-      const Database = require('better-sqlite3');
-      const dbDir = path.dirname(DB_PATH);
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-      }
+      // Dynamic non-analyzable module name to avoid bundler resolution
+      const pkg = 'better-sqlite3';
+      const Database = (eval('require'))(pkg);
       db = new Database(DB_PATH);
       db.pragma('foreign_keys = ON');
       db.pragma('journal_mode = WAL');
